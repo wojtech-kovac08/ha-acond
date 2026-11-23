@@ -74,7 +74,11 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
 
         #: Values this entry actually exposes (options can switch some off).
         self.values: tuple[ValueSpec, ...] = enabled_values(
-            VALUES, CIRCUIT_2_KEYS, self.circuit_2_enabled
+            VALUES,
+            CIRCUIT_2_KEYS,
+            self.circuit_2_enabled,
+            ENERGY_BLOCKS,
+            self.energy_enabled,
         )
 
         #: Block indexes to poll.

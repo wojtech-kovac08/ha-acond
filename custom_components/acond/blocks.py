@@ -66,8 +66,13 @@ def enabled_values(
     values: Sequence[ValueSpec],
     circuit_2_keys: frozenset[str],
     circuit_2_enabled: bool,
+    energy_blocks: frozenset[int],
+    energy_enabled: bool,
 ) -> tuple[ValueSpec, ...]:
     """Drop the values that belong to switched off parts of the register map."""
     return tuple(
-        spec for spec in values if circuit_2_enabled or spec.key not in circuit_2_keys
+        spec
+        for spec in values
+        if (circuit_2_enabled or spec.key not in circuit_2_keys)
+        and (energy_enabled or spec.block not in energy_blocks)
     )
