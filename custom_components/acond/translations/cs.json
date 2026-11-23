@@ -62,10 +62,10 @@
         "name": "Aktuální teplota okruh 2"
       },
       "setpoint_dhw": {
-        "name": "Žádaná teplota TV"
+        "name": "Žádaná teplota TUV"
       },
       "temperature_dhw": {
-        "name": "Teplota TV"
+        "name": "Teplota TUV"
       },
       "temperature_return": {
         "name": "Vratná voda"
@@ -109,7 +109,7 @@
         "name": "Porucha čerpadla"
       },
       "dhw_heating": {
-        "name": "Ohřev TV"
+        "name": "Ohřev TUV"
       },
       "circulation_1": {
         "name": "Cirkulace okruh 1"

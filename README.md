@@ -22,8 +22,8 @@ Repo: <https://github.com/wojtech-kovac08/ha-acond>
 | `sensor.acond_hp_aktualni_teplota_okruh_1` | 30002 | °C |
 | `sensor.acond_hp_zadana_teplota_okruh_2` | 30003 | °C |
 | `sensor.acond_hp_aktualni_teplota_okruh_2` | 30004 | °C |
-| `sensor.acond_hp_zadana_teplota_tv` | 30005 | °C |
-| `sensor.acond_hp_teplota_tv` | 30006 | °C |
+| `sensor.acond_hp_zadana_teplota_tuv` | 30005 | °C |
+| `sensor.acond_hp_teplota_tuv` | 30006 | °C |
 | `sensor.acond_hp_vratna_voda` | 30009 | °C |
 | `sensor.acond_hp_venkovni_teplota` | 30010 | °C |
 | `sensor.acond_hp_vystupni_voda` | 30018 | °C |
@@ -57,7 +57,7 @@ implementované některé adresy, tak nezablokuje celou integraci:
 | Blok | Registry | Co v něm je |
 |---|---|---|
 | 1 | 30001–30004 | teploty okruhů |
-| 2 | 30005–30008 | TV + stavové slovo 30007 |
+| 2 | 30005–30008 | TUV + stavové slovo 30007 |
 | 3 | 30009–30010 | vratná voda, venkovní |
 | 4 | 30018 | výstupní voda |
 | 5 | 30021 | kód poruchy |
@@ -129,7 +129,7 @@ Podle něj se mapa v `const.py` upraví (nebo se nefunkční hodnoty vypustí).
 ## Roadmap
 
 - [x] Teploty 2 okruhů + climate (read only)
-- [x] TV, venkovní, vratná a výstupní voda
+- [x] TUV, venkovní, vratná a výstupní voda
 - [x] Energie, COP, SCOP
 - [x] Binární sensory ze stavového slova 30007
 - [x] Kód poruchy s textem
