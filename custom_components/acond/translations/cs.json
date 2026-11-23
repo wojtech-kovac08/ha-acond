@@ -61,6 +61,14 @@
       "temperature_circuit_2": {
         "name": "Aktuální teplota okruh 2"
       }
+    },
+    "climate": {
+      "circuit_1": {
+        "name": "Topný okruh 1"
+      },
+      "circuit_2": {
+        "name": "Topný okruh 2"
+      }
     }
   }
 }

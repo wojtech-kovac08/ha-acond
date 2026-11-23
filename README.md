@@ -1,26 +1,47 @@
 # Acond Heat Pump – Home Assistant integration
 
 Nevýhradní (unofficial) integrace pro tepelná čerpadla **Acond** komunikující přes **Modbus TCP**.
-Zatím jen **čtení teplot** dvou topných okruhů – žádaná a skutečná hodnota (registry 30001–30004).
+Čte teploty dvou topných okruhů a vystavuje je jako `climate` entity (použitelné v Bubble Card).
 
 Repo: <https://github.com/wojtech-kovac08/ha-acond>
 
 ## Co integrace umí
 
-| Entita | Registr | Význam |
-|---|---|---|
-| `sensor.acond_hp_zadana_teplota_okruh_1` | 30001 | Žádaná teplota okruhu 1 |
-| `sensor.acond_hp_aktualni_teplota_okruh_1` | 30002 | Aktuální teplota okruhu 1 (čidlo) |
-| `sensor.acond_hp_zadana_teplota_okruh_2` | 30003 | Žádaná teplota okruhu 2 |
-| `sensor.acond_hp_aktualni_teplota_okruh_2` | 30004 | Aktuální teplota okruhu 2 (čidlo) |
+**Climate entity** – `climate.acond_hp_topny_okruh_1` a `..._okruh_2`
 
-Hodnoty jsou v datovém modelu vedené jako `INT ×10`, integrace je převádí na °C (215 → 21,5 °C).
-Čtení probíhá jedním blokem 4 registrů, takže na lince je jen jeden požadavek na cyklus.
+| Vlastnost | Zdroj |
+|---|---|
+| Aktuální teplota | 30002 / 30004 |
+| Žádaná teplota (10–30 °C, krok 0,1) | čtení 30001 / 30003, zápis 40001 / 40003 |
+| Režim OFF / HEAT / COOL | čtení 30014, zápis 40006 |
+| `hvac_action` (topí / chladí / idle) | 30007 (bity 0 a 1) |
+
+**Senzory** (zůstávají vedle climate entit)
+
+| Entita | Registr |
+|---|---|
+| `sensor.acond_hp_zadana_teplota_okruh_1` | 30001 |
+| `sensor.acond_hp_aktualni_teplota_okruh_1` | 30002 |
+| `sensor.acond_hp_zadana_teplota_okruh_2` | 30003 |
+| `sensor.acond_hp_aktualni_teplota_okruh_2` | 30004 |
+
+Hodnoty jsou v datovém modelu `INT ×10`, integrace je převádí na °C (228 → 22,8 °C).
+Celý blok 30001–30014 se čte jedním požadavkem na cyklus.
+
+## Bubble Card
+
+```yaml
+type: custom:bubble-card
+card_type: climate
+entity: climate.acond_hp_topny_okruh_1
+```
+
+Karta si sama vezme aktuální teplotu, slider žádané teploty i tlačítka režimů.
 
 ## Požadavky
 
 - Home Assistant **2024.2** nebo novější
-- Tepelné čerpadlo Acond s **aktivovaným Modbus TCP** (aktivaci provádí servis – v jednotce je pak potřeba zaškrtnout ModbusTCP v tmavě modrém pruhu na hlavní stránce)
+- Tepelné čerpadlo Acond s **aktivovaným Modbus TCP** (aktivuje servis, v jednotce pak musí být ModbusTCP zaškrtnuté v tmavě modrém pruhu na hlavní stránce)
 - IP adresa jednotky, port **502**, Modbus ID **1** (ID 2 je obsazené pro kaskádu)
 
 ## Instalace přes HACS
@@ -44,25 +65,32 @@ Zkopíruj složku `custom_components/acond` do `config/custom_components/acond` 
 | slave | 1 | Modbus ID (2 = kaskáda, nepoužívat) |
 | scan_interval | 30 s | interval čtení |
 
-Při přidávání integrace se ověří, že se blok registrů skutečně přečte – když ne, dialog vrátí `cannot_connect`.
+## Omezení a chování zápisu
+
+- Režim je **globální pro celou jednotku** – obě climate entity (okruh 1 i 2) proto ukazují a mění stejný režim.
+- `HEAT` zapisuje bit 0 (automatický režim), aby zůstalo povolené i záložní/bivalentní topení. `COOL` = bit 4, `OFF` = bit 3.
+- Ostatní bity slova 40006 (solar, bazén, SG ready, přepnutí zima/léto) integrace **zachová** – před zápisem si je přečte.
+- Pokud je jednotka v režimu „jen záložní topení" (3) nebo „ručně" (5), climate hlásí `HEAT`; přepnutím na `HEAT` se jednotka přepne do automatiky.
+- Hodnota žádané teploty mimo 10–30 °C jednotka ignoruje a použije hodnotu z čidla.
 
 ## Řešení problémů
 
-- **cannot_connect** – zkontroluj IP, port, ID, a hlavně jestli je Modbus TCP v jednotce aktivovaný *a* zaškrtnutý. Stav „ModbusTCP false“ na displeji znamená, že v intervalu `MaxCommDataRefresh` nepřišla žádná data.
-- **Entita je `unknown` / `unavailable`** – spojení spadlo; integrace se pokusí připojit znovu v dalším cyklu.
-- **Nesmyslné hodnoty** – zkontroluj, že v jednotce běží firmware s tímto rozsahem registrů (dokumentace `v4.3.3.25`, 07.04.2026). Dokumentace OEM i Grandis je v tomto rozsahu shodná.
-- Jen **jeden master** může být připojený současně – pokud jednotku čte i nějaký jiný systém, čtení se budou střídat/hádat.
+- **„nepodařilo se otevřít TCP spojení"** – jednotka na dané IP/portu neposlouchá (síť, firewall, jednotka offline).
+- **„jednotka neodpovídá na Modbus dotazy"** – TCP jde, ale jednotka mlčí: ModbusTCP není zaškrtnuté/aktivované, nebo špatné ID.
+- **„odpověděla chybou Modbusu"** – firmware jednotky neodpovídá dokumentaci v4.3.3.25.
+- Jen **jeden master** může jednotku číst současně.
 
 ## Roadmap
 
-- [x] Čtení teplot 2 okruhů (žádaná + skutečná)
-- [ ] Teplota TV, bazénu, venkovní a výstupní/vratné vody
-- [ ] Binární sensory ze stavového slova 30007 (HP on, porucha, defrost, …)
+- [x] Čtení teplot 2 okruhů
+- [x] `climate` entity + zápis žádané teploty a režimu
+- [ ] Teplota TV jako `water_heater` (40005)
+- [ ] Binární sensory ze stavového slova 30007
 - [ ] Kód poruchy 30021 / 30023 jako sensor s textovým popisem
-- [ ] Zápis: žádané teploty (40001, 40003, 40005) a režim (40006)
-- [ ] `number` / `select` / `climate` entity
+- [ ] Tichý režim (`switch`) – 40018–40020
+- [ ] Energetické sensory (30035+, 30069+)
 
 ## Poznámka
 
-Projekt není nijak spojený s výrobcem. Vychází z dokumentace „Protocol – Modbus TCP/RTU“ (`AC781180_52_v4.3.3.25`, resp. `AC781150_52_v4.3.3.25`).
-Použití na vlastní riziko – zápis do registrů může ovlivnit provoz vytápění.
+Projekt není nijak spojený s výrobcem. Vychází z dokumentace „Protocol – Modbus TCP/RTU" (`AC781180_52_v4.3.3.25`, resp. `AC781150_52_v4.3.3.25`).
+Použití na vlastní riziko – zápis do registrů ovlivňuje provoz vytápění.

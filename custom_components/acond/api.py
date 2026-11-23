@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any, Awaitable, Callable
 
 from pymodbus.client import AsyncModbusTcpClient
 
@@ -94,31 +95,58 @@ class AcondModbusClient:
 
     async def async_read_input_registers(self, address: int, count: int) -> list[int]:
         """Read ``count`` input registers starting at PDU ``address``."""
+        return await self._async_call(
+            lambda: self._client.read_input_registers(
+                address, count=count, **self._unit_kwargs()
+            ),
+            f"read of {count} input register(s) at {address}",
+        )
+
+    async def async_read_holding_registers(self, address: int, count: int) -> list[int]:
+        """Read ``count`` holding registers starting at PDU ``address``."""
+        return await self._async_call(
+            lambda: self._client.read_holding_registers(
+                address, count=count, **self._unit_kwargs()
+            ),
+            f"read of {count} holding register(s) at {address}",
+        )
+
+    async def async_write_register(self, address: int, value: int) -> None:
+        """Write one holding register (function code 6)."""
+        await self._async_call(
+            lambda: self._client.write_register(
+                address, value, **self._unit_kwargs()
+            ),
+            f"write of {value} to holding register {address}",
+        )
+
+    async def _async_call(
+        self, call: Callable[[], Awaitable[Any]], description: str
+    ) -> list[int]:
+        """Run one Modbus call and translate pymodbus errors."""
         if self._client is None:
             raise AcondConnectionError("Modbus client is not connected")
 
         try:
-            result = await self._client.read_input_registers(
-                address, count=count, **self._unit_kwargs()
-            )
+            result = await call()
         except ModbusIOException as err:
             self.close()
-            raise AcondNoResponseError(f"No response from the heat pump: {err}") from err
+            raise AcondNoResponseError(f"No response during {description}: {err}") from err
         except (ConnectionException, asyncio.TimeoutError, OSError) as err:
             self.close()
-            raise AcondConnectionError(f"Communication error: {err}") from err
+            raise AcondConnectionError(f"Communication error during {description}: {err}") from err
         except ModbusException as err:
             self.close()
-            raise AcondModbusError(f"Modbus error: {err}") from err
+            raise AcondModbusError(f"Modbus error during {description}: {err}") from err
         except Exception as err:  # noqa: BLE001
             self.close()
-            raise AcondError(f"Unexpected communication error: {err!r}") from err
+            raise AcondError(f"Unexpected error during {description}: {err!r}") from err
 
         if result is None:
-            raise AcondNoResponseError("The heat pump returned no response")
+            raise AcondNoResponseError(f"The heat pump returned no response to {description}")
         if result.isError():
-            raise AcondModbusError(f"Modbus exception response: {result}")
-        return list(result.registers)
+            raise AcondModbusError(f"Modbus exception response to {description}: {result}")
+        return list(getattr(result, "registers", []))
 
     def _unit_kwargs(self) -> dict[str, int]:
         """Return the unit id keyword this pymodbus version understands."""
