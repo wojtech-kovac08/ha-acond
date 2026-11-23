@@ -8,12 +8,16 @@
           "host": "IP address / hostname",
           "port": "TCP port",
           "slave": "Modbus unit ID",
-          "scan_interval": "Polling interval (s)"
+          "scan_interval": "Polling interval (s)",
+          "enable_circuit_2": "Second heating circuit",
+          "enable_energy": "Energy registers (COP, SCOP, kWh)"
         },
         "data_description": {
           "port": "Default is 502.",
           "slave": "Default is 1. Unit ID 2 is reserved for the HP cascade.",
-          "scan_interval": "How often the temperatures are read, in seconds."
+          "scan_interval": "How often the temperatures are read, in seconds.",
+          "enable_circuit_2": "Turn off when the unit has only one circuit.",
+          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
         }
       }
     },
@@ -36,7 +40,13 @@
           "host": "IP address / hostname",
           "port": "TCP port",
           "slave": "Modbus unit ID",
-          "scan_interval": "Polling interval (s)"
+          "scan_interval": "Polling interval (s)",
+          "enable_circuit_2": "Second heating circuit",
+          "enable_energy": "Energy registers (COP, SCOP, kWh)"
+        },
+        "data_description": {
+          "enable_circuit_2": "Turn off when the unit has only one circuit.",
+          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
         }
       }
     },

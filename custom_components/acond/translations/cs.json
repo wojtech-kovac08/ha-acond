@@ -8,12 +8,16 @@
           "host": "IP adresa / hostname",
           "port": "TCP port",
           "slave": "Modbus ID jednotky",
-          "scan_interval": "Interval čtení (s)"
+          "scan_interval": "Interval čtení (s)",
+          "enable_circuit_2": "Druhý topný okruh",
+          "enable_energy": "Energetické registry (COP, SCOP, energie)"
         },
         "data_description": {
           "port": "Výchozí je 502.",
           "slave": "Výchozí je 1. ID 2 je obsazené pro kaskádu HP.",
-          "scan_interval": "Jak často se teploty načítají, v sekundách."
+          "scan_interval": "Jak často se teploty načítají, v sekundách.",
+          "enable_circuit_2": "Vypněte, pokud jednotka druhý okruh nemá.",
+          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
         }
       }
     },
@@ -36,7 +40,13 @@
           "host": "IP adresa / hostname",
           "port": "TCP port",
           "slave": "Modbus ID jednotky",
-          "scan_interval": "Interval čtení (s)"
+          "scan_interval": "Interval čtení (s)",
+          "enable_circuit_2": "Druhý topný okruh",
+          "enable_energy": "Energetické registry (COP, SCOP, energie)"
+        },
+        "data_description": {
+          "enable_circuit_2": "Vypněte, pokud jednotka druhý okruh nemá.",
+          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
         }
       }
     },

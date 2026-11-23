@@ -21,7 +21,6 @@ from .const import (
     MANUFACTURER,
     MODEL,
     NON_SENSOR_KEYS,
-    VALUES,
     ValueSpec,
 )
 from .coordinator import AcondCoordinator
@@ -36,7 +35,7 @@ async def async_setup_entry(
     coordinator: AcondCoordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = [
         AcondSensor(coordinator, entry, spec)
-        for spec in VALUES
+        for spec in coordinator.values
         if spec.key not in NON_SENSOR_KEYS
     ]
     entities.append(AcondFaultSensor(coordinator, entry))

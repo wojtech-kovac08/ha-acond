@@ -26,8 +26,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up one climate entity per heating circuit."""
     coordinator: AcondCoordinator = hass.data[DOMAIN][entry.entry_id]
+    circuits = (1, 2) if coordinator.circuit_2_enabled else (1,)
     async_add_entities(
-        AcondClimate(coordinator, entry, circuit) for circuit in (1, 2)
+        AcondClimate(coordinator, entry, circuit) for circuit in circuits
     )
 
 

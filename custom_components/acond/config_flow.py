@@ -17,6 +17,7 @@ except ImportError:  # pragma: no cover - older Home Assistant
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -32,8 +33,12 @@ from .api import (
 )
 from .const import (
     BLOCKS,
+    CONF_ENABLE_CIRCUIT_2,
+    CONF_ENABLE_ENERGY,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
+    DEFAULT_ENABLE_CIRCUIT_2,
+    DEFAULT_ENABLE_ENERGY,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
@@ -50,6 +55,10 @@ def _normalise(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_PORT: int(user_input[CONF_PORT]),
         CONF_SLAVE: int(user_input[CONF_SLAVE]),
         CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+        CONF_ENABLE_ENERGY: bool(user_input.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY)),
+        CONF_ENABLE_CIRCUIT_2: bool(
+            user_input.get(CONF_ENABLE_CIRCUIT_2, DEFAULT_ENABLE_CIRCUIT_2)
+        ),
     }
 
 
@@ -93,6 +102,14 @@ def _schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
                     min=5, max=3600, step=1, mode=NumberSelectorMode.BOX
                 )
             ),
+            vol.Required(
+                CONF_ENABLE_CIRCUIT_2,
+                default=data.get(CONF_ENABLE_CIRCUIT_2, DEFAULT_ENABLE_CIRCUIT_2),
+            ): BooleanSelector(),
+            vol.Required(
+                CONF_ENABLE_ENERGY,
+                default=data.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY),
+            ): BooleanSelector(),
         }
     )
 

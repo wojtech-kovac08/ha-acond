@@ -14,11 +14,18 @@ MODEL = "AC781180 / AC781150"
 
 CONF_SLAVE = "slave"
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_ENABLE_ENERGY = "enable_energy"
+CONF_ENABLE_CIRCUIT_2 = "enable_circuit_2"
 
 DEFAULT_PORT = 502
 DEFAULT_SLAVE = 1
 DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_TIMEOUT = 5  # seconds
+
+#: Off by default - many units do not implement these registers at all.
+DEFAULT_ENABLE_ENERGY = False
+#: On by default, can be switched off for single circuit units.
+DEFAULT_ENABLE_CIRCUIT_2 = True
 
 #: Small input register blocks, read independently.
 #: (first register offset from 30001, number of registers)
@@ -100,6 +107,12 @@ VALUES: tuple[ValueSpec, ...] = (
 
 #: Keys that are used by other platforms instead of plain sensors.
 NON_SENSOR_KEYS = frozenset({"status_word", "fault_code"})
+
+#: Indexes in BLOCKS that carry the optional "energy" values (COP, SCOP, kWh).
+ENERGY_BLOCKS = frozenset({5, 6, 7, 8})
+
+#: Values of the optional second heating circuit.
+CIRCUIT_2_KEYS = frozenset({"setpoint_circuit_2", "temperature_circuit_2"})
 
 #: 30007 - bit -> (key, binary_sensor device class or None)
 STATUS_BITS: dict[int, tuple[str, str | None]] = {

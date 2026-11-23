@@ -22,17 +22,24 @@ from .api import (
     to_signed,
     to_signed32,
 )
-from .blocks import BlockTracker
+from .blocks import BlockTracker, enabled_block_indexes, enabled_values
 from .const import (
     BLOCKS,
+    CIRCUIT_2_KEYS,
+    CONF_ENABLE_CIRCUIT_2,
+    CONF_ENABLE_ENERGY,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
+    DEFAULT_ENABLE_CIRCUIT_2,
+    DEFAULT_ENABLE_ENERGY,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
     DEFAULT_TIMEOUT,
     DOMAIN,
+    ENERGY_BLOCKS,
     VALUES,
+    ValueSpec,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,15 +56,30 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         self.port: int = int(entry.data.get(CONF_PORT, DEFAULT_PORT))
         self.slave: int = int(entry.data.get(CONF_SLAVE, DEFAULT_SLAVE))
 
-        interval = entry.options.get(
-            CONF_SCAN_INTERVAL,
-            entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        settings = {**entry.data, **entry.options}
+        self.energy_enabled: bool = bool(
+            settings.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY)
         )
+        self.circuit_2_enabled: bool = bool(
+            settings.get(CONF_ENABLE_CIRCUIT_2, DEFAULT_ENABLE_CIRCUIT_2)
+        )
+
+        interval = settings.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=int(interval)),
+        )
+
+        #: Values this entry actually exposes (options can switch some off).
+        self.values: tuple[ValueSpec, ...] = enabled_values(
+            VALUES, CIRCUIT_2_KEYS, self.circuit_2_enabled
+        )
+
+        #: Block indexes to poll.
+        self.block_indexes: tuple[int, ...] = enabled_block_indexes(
+            len(BLOCKS), ENERGY_BLOCKS, self.energy_enabled
         )
 
         self.client = AcondModbusClient(
@@ -72,7 +94,7 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         self.tracker = BlockTracker()
 
     async def _async_update_data(self) -> AcondData:
-        """Read the register blocks and decode every known value.
+        """Read the register blocks and decode every enabled value.
 
         Each block is read on its own. A block the unit refuses only makes its
         own values unavailable, the rest keeps working.
@@ -86,7 +108,8 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         raw: dict[int, list[int]] = {}
         failed: dict[int, str] = {}
 
-        for start, count in BLOCKS:
+        for index in self.block_indexes:
+            start, count = BLOCKS[index]
             if not self.tracker.should_read(start):
                 continue
             try:
@@ -133,7 +156,7 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
             )
 
         data: AcondData = {}
-        for spec in VALUES:
+        for spec in self.values:
             start, _ = BLOCKS[spec.block]
             registers = raw.get(start)
             if registers is None or len(registers) <= spec.offset:

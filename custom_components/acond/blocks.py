@@ -1,6 +1,12 @@
-"""Tracking of register blocks the unit refuses (no Home Assistant imports)."""
+"""Register block policies: give-up tracker and option filtering."""
 
 from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .const import ValueSpec
 
 
 class BlockTracker:
@@ -43,3 +49,25 @@ class BlockTracker:
     def pending(self) -> dict[int, int]:
         """Error counters of the blocks that still fail occasionally."""
         return dict(self._errors)
+
+
+def enabled_block_indexes(
+    block_count: int, energy_blocks: frozenset[int], energy_enabled: bool
+) -> tuple[int, ...]:
+    """Return the block indexes that have to be polled with these options."""
+    return tuple(
+        index
+        for index in range(block_count)
+        if energy_enabled or index not in energy_blocks
+    )
+
+
+def enabled_values(
+    values: Sequence[ValueSpec],
+    circuit_2_keys: frozenset[str],
+    circuit_2_enabled: bool,
+) -> tuple[ValueSpec, ...]:
+    """Drop the values that belong to switched off parts of the register map."""
+    return tuple(
+        spec for spec in values if circuit_2_enabled or spec.key not in circuit_2_keys
+    )

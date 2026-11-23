@@ -97,6 +97,11 @@ Zkopíruj složku `custom_components/acond` do `config/custom_components/acond` 
 | port | 502 | TCP port Modbus |
 | slave | 1 | Modbus ID (2 = kaskáda, nepoužívat) |
 | scan_interval | 30 s | interval čtení |
+| enable_circuit_2 | zapnuto | druhý topný okruh; vypni u jednookruhových jednotek |
+| enable_energy | **vypnuto** | COP, SCOP a energetické registry (30029, 30035–30038, 30041, 30069–30072) |
+
+Obě volby jde kdykoli změnit přes **Nastavení → Zařízení a služby → Acond HP → Konfigurovat**.
+Když jsou vypnuté, příslušné entity vůbec nevzniknou (a registry se vůbec nečtou).
 
 ## Omezení
 
@@ -108,6 +113,8 @@ Zkopíruj složku `custom_components/acond` do `config/custom_components/acond` 
 
 - **„nepodařilo se otevřít TCP spojení"** – jednotka na dané IP/portu neposlouchá.
 - **„jednotka neodpovídá na Modbus dotazy"** – TCP jde, ale jednotka mlčí (ModbusTCP není zaškrtnuté, nebo špatné ID).
+- **COP / SCOP / energie jsou `unknown`** – jednotka tyto registry nemá. Nech `enable_energy`
+  vypnuté, nebo je zapni jen když je jednotka opravdu implementuje.
 - **„odmítla požadavek Modbus"** – jednotka vrátila exception response, obvykle na blok,
   který nemá implementovaný. Integrace se i tak nastaví a čte ostatní bloky.
   Po třech odmítnutích stejného bloku ho přestane čítat (aby nezasypával log)
