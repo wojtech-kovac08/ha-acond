@@ -60,6 +60,92 @@
       },
       "temperature_circuit_2": {
         "name": "Temperature circuit 2"
+      },
+      "setpoint_dhw": {
+        "name": "DHW setpoint"
+      },
+      "temperature_dhw": {
+        "name": "DHW temperature"
+      },
+      "temperature_return": {
+        "name": "Return water temperature"
+      },
+      "temperature_outdoor": {
+        "name": "Outdoor temperature"
+      },
+      "temperature_outlet": {
+        "name": "Outlet water temperature"
+      },
+      "cop": {
+        "name": "COP"
+      },
+      "scop": {
+        "name": "SCOP"
+      },
+      "energy_heating_total": {
+        "name": "Heating energy"
+      },
+      "energy_heating_electric_total": {
+        "name": "Heating electricity"
+      },
+      "energy_cooling_total": {
+        "name": "Cooling energy"
+      },
+      "energy_cooling_electric_total": {
+        "name": "Cooling electricity"
+      },
+      "fault_code": {
+        "name": "Fault"
+      }
+    },
+    "binary_sensor": {
+      "hp_on": {
+        "name": "Heat pump on"
+      },
+      "hp_operation": {
+        "name": "Heat pump running"
+      },
+      "hp_failure": {
+        "name": "Heat pump fault"
+      },
+      "dhw_heating": {
+        "name": "DHW heating"
+      },
+      "circulation_1": {
+        "name": "Circulation circuit 1"
+      },
+      "circulation_2": {
+        "name": "Circulation circuit 2"
+      },
+      "solar_circulation": {
+        "name": "Solar circulation"
+      },
+      "pool_circulation": {
+        "name": "Pool circulation"
+      },
+      "defrosting": {
+        "name": "Defrosting"
+      },
+      "electric_heater": {
+        "name": "Electric heater"
+      },
+      "summer_mode": {
+        "name": "Summer mode"
+      },
+      "brine_circulation": {
+        "name": "Brine circulation"
+      },
+      "cooling": {
+        "name": "Cooling"
+      },
+      "sg_ready_1": {
+        "name": "SG ready 1"
+      },
+      "sg_ready_2": {
+        "name": "SG ready 2"
+      },
+      "sg_ready_modbus": {
+        "name": "SG ready via Modbus"
       }
     },
     "climate": {

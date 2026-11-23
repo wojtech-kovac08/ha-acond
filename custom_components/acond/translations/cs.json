@@ -60,6 +60,92 @@
       },
       "temperature_circuit_2": {
         "name": "Aktuální teplota okruh 2"
+      },
+      "setpoint_dhw": {
+        "name": "Žádaná teplota TV"
+      },
+      "temperature_dhw": {
+        "name": "Teplota TV"
+      },
+      "temperature_return": {
+        "name": "Vratná voda"
+      },
+      "temperature_outdoor": {
+        "name": "Venkovní teplota"
+      },
+      "temperature_outlet": {
+        "name": "Výstupní voda"
+      },
+      "cop": {
+        "name": "COP"
+      },
+      "scop": {
+        "name": "SCOP"
+      },
+      "energy_heating_total": {
+        "name": "Vytápění – energie"
+      },
+      "energy_heating_electric_total": {
+        "name": "Vytápění – elektřina"
+      },
+      "energy_cooling_total": {
+        "name": "Chlazení – energie"
+      },
+      "energy_cooling_electric_total": {
+        "name": "Chlazení – elektřina"
+      },
+      "fault_code": {
+        "name": "Porucha"
+      }
+    },
+    "binary_sensor": {
+      "hp_on": {
+        "name": "Čerpadlo zapnuto"
+      },
+      "hp_operation": {
+        "name": "Čerpadlo v provozu"
+      },
+      "hp_failure": {
+        "name": "Porucha čerpadla"
+      },
+      "dhw_heating": {
+        "name": "Ohřev TV"
+      },
+      "circulation_1": {
+        "name": "Cirkulace okruh 1"
+      },
+      "circulation_2": {
+        "name": "Cirkulace okruh 2"
+      },
+      "solar_circulation": {
+        "name": "Solární cirkulace"
+      },
+      "pool_circulation": {
+        "name": "Bazénová cirkulace"
+      },
+      "defrosting": {
+        "name": "Odmrazování"
+      },
+      "electric_heater": {
+        "name": "Elektrické topení"
+      },
+      "summer_mode": {
+        "name": "Letní režim"
+      },
+      "brine_circulation": {
+        "name": "Cirkulace solanky"
+      },
+      "cooling": {
+        "name": "Chlazení"
+      },
+      "sg_ready_1": {
+        "name": "SG ready 1"
+      },
+      "sg_ready_2": {
+        "name": "SG ready 2"
+      },
+      "sg_ready_modbus": {
+        "name": "SG ready přes Modbus"
       }
     },
     "climate": {

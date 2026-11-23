@@ -14,8 +14,9 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .api import AcondError, AcondModbusClient, to_signed
+from .api import AcondError, AcondModbusClient, to_signed, to_signed32
 from .const import (
+    BLOCKS,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
     DEFAULT_PORT,
@@ -23,16 +24,16 @@ from .const import (
     DEFAULT_SLAVE,
     DEFAULT_TIMEOUT,
     DOMAIN,
-    REGISTER_BLOCK_START,
-    REGISTER_COUNT,
-    REGISTERS,
+    VALUES,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
+AcondData = dict[str, float | int]
 
-class AcondCoordinator(DataUpdateCoordinator[dict[str, float]]):
-    """Poll the heat pump and keep the decoded temperatures."""
+
+class AcondCoordinator(DataUpdateCoordinator[AcondData]):
+    """Poll the heat pump and keep the decoded values."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialise the coordinator from the config entry."""
@@ -58,21 +59,33 @@ class AcondCoordinator(DataUpdateCoordinator[dict[str, float]]):
             timeout=DEFAULT_TIMEOUT,
         )
 
-    async def _async_update_data(self) -> dict[str, float]:
-        """Read the register block and decode the temperatures."""
+    async def _async_update_data(self) -> AcondData:
+        """Read the register blocks and decode every known value."""
         try:
             await self.client.async_connect()
-            registers = await self.client.async_read_input_registers(
-                REGISTER_BLOCK_START, REGISTER_COUNT
-            )
+            blocks = [
+                await self.client.async_read_input_registers(start, count)
+                for start, count in BLOCKS
+            ]
         except (AcondError, OSError, asyncio.TimeoutError) as err:
             self.client.close()
             raise UpdateFailed(f"Communication with the heat pump failed: {err}") from err
 
-        return {
-            key: round(to_signed(registers[offset]) / divisor, 1)
-            for key, (offset, divisor) in REGISTERS.items()
-        }
+        data: AcondData = {}
+        for spec in VALUES:
+            registers = blocks[spec.block]
+            if spec.kind == "i32":
+                raw = to_signed32((registers[spec.offset] << 16) | registers[spec.offset + 1])
+            elif spec.kind == "u16":
+                raw = registers[spec.offset]
+            else:
+                raw = to_signed(registers[spec.offset])
+
+            if spec.divisor == 1:
+                data[spec.key] = raw
+            else:
+                data[spec.key] = round(raw / spec.divisor, 1)
+        return data
 
     async def async_shutdown(self) -> None:
         """Close the Modbus connection."""

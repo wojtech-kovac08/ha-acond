@@ -48,6 +48,11 @@ def to_signed(value: int) -> int:
     return value - 0x10000 if value > 0x7FFF else value
 
 
+def to_signed32(value: int) -> int:
+    """Convert an unsigned 32 bit value to a signed integer."""
+    return value - 0x100000000 if value > 0x7FFFFFFF else value
+
+
 class AcondModbusClient:
     """Thin async wrapper around pymodbus for one heat pump.
 
