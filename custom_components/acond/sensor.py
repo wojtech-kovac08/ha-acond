@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -65,10 +69,14 @@ class AcondSensor(CoordinatorEntity[AcondCoordinator], SensorEntity):
         self.spec = spec
         self._attr_translation_key = spec.key
         self._attr_unique_id = f"{entry.entry_id}_{spec.key}"
-        self._attr_device_class = spec.device_class
+        self._attr_device_class = (
+            SensorDeviceClass(spec.device_class) if spec.device_class else None
+        )
         self._attr_native_unit_of_measurement = spec.unit
         self._attr_suggested_display_precision = spec.precision
-        self._attr_state_class = spec.state_class
+        self._attr_state_class = (
+            SensorStateClass(spec.state_class) if spec.state_class else None
+        )
         self._attr_icon = spec.icon
         self._attr_device_info = _device_info(coordinator, entry)
 

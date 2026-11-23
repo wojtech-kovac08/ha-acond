@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -44,7 +47,9 @@ class AcondBinarySensor(CoordinatorEntity[AcondCoordinator], BinarySensorEntity)
         self.bit = bit
         self._attr_translation_key = key
         self._attr_unique_id = f"{entry.entry_id}_{key}"
-        self._attr_device_class = device_class
+        self._attr_device_class = (
+            BinarySensorDeviceClass(device_class) if device_class else None
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Acond HP",
