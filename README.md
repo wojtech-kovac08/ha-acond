@@ -3,7 +3,7 @@
 Nevýhradní (unofficial) integrace pro tepelná čerpadla **Acond** komunikující přes **Modbus TCP**.
 Zatím jen **čtení teplot** dvou topných okruhů – žádaná a skutečná hodnota (registry 30001–30004).
 
-Repo: <https://github.com/Wojtech08/ha-acond>
+Repo: <https://github.com/wojtech-kovac08/ha-acond>
 
 ## Co integrace umí
 
@@ -26,7 +26,7 @@ Hodnoty jsou v datovém modelu vedené jako `INT ×10`, integrace je převádí 
 ## Instalace přes HACS
 
 1. HACS → **⋮ → Custom repositories**
-2. URL: `https://github.com/Wojtech08/ha-acond`, kategorie **Integration**
+2. URL: `https://github.com/wojtech-kovac08/ha-acond`, kategorie **Integration**
 3. Nainstaluj **Acond Heat Pump** a restartuj Home Assistant
 4. **Nastavení → Zařízení a služby → Přidat integraci → Acond Heat Pump**
 5. Zadej IP adresu, port, Modbus ID a interval čtení
