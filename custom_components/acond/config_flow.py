@@ -31,14 +31,13 @@ from .api import (
     AcondNoResponseError,
 )
 from .const import (
+    BLOCKS,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
     DOMAIN,
-    REGISTER_BLOCK_START,
-    REGISTER_COUNT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +58,8 @@ async def _async_probe(host: str, port: int, slave: int) -> None:
     client = AcondModbusClient(host, port=port, slave=slave)
     try:
         await client.async_connect()
-        await client.async_read_input_registers(REGISTER_BLOCK_START, REGISTER_COUNT)
+        for start, count in BLOCKS:
+            await client.async_read_input_registers(start, count)
     finally:
         client.close()
 
