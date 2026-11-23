@@ -42,7 +42,6 @@ BLOCKS: tuple[tuple[int, int], ...] = (
     (40, 1),  # 30041 SCOP
     (68, 4),  # 30069-30072 energy cooling (2 x DINT)
     (13, 2),  # 30014-30015 HP mode, type of regulation
-    (32, 2),  # 30033-30034 silent mode start/stop
 )
 
 
@@ -130,15 +129,6 @@ VALUES: tuple[ValueSpec, ...] = (
     ValueSpec(
         "regulation_type", 9, 1, "i16", icon="mdi:tune", state_map=REGULATION_TYPES
     ),
-    # --- silent mode (minutes from midnight) ----------------------------
-    ValueSpec(
-        "silent_start", 10, 0, "u16",
-        device_class="duration", unit="min", icon="mdi:weather-night",
-    ),
-    ValueSpec(
-        "silent_stop", 10, 1, "u16",
-        device_class="duration", unit="min", icon="mdi:weather-night",
-    ),
 )
 
 #: Keys that get their own sensor class instead of the generic one.
@@ -148,8 +138,6 @@ CUSTOM_SENSOR_KEYS = frozenset(
         "status_word",
         "hp_mode",
         "regulation_type",
-        "silent_start",
-        "silent_stop",
     }
 )
 

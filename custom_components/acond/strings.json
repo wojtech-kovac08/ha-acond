@@ -115,12 +115,6 @@
       },
       "regulation_type": {
         "name": "Regulation type"
-      },
-      "silent_start": {
-        "name": "Silent mode start"
-      },
-      "silent_stop": {
-        "name": "Silent mode stop"
       }
     },
     "binary_sensor": {

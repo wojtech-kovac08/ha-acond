@@ -37,14 +37,11 @@ Repo: <https://github.com/wojtech-kovac08/ha-acond>
 | `sensor.acond_hp_stav_cerpadla_30007` | 30007 | – |
 | `sensor.acond_hp_rezim_cerpadla` | 30014 | – |
 | `sensor.acond_hp_typ_regulace` | 30015 | – |
-| `sensor.acond_hp_tichy_rezim_od` | 30033 | min |
-| `sensor.acond_hp_tichy_rezim_do` | 30034 | min |
 
 - `porucha` – stav je kód (`OK`, `A01`, `W07`, …), atributy `code`, `description` (kompletní tabulka).
 - `stav_cerpadla_30007` – surová hodnota slova, v atributech všechny bity (`hp_on`, `defrosting`, …, `bits`).
 - `rezim_cerpadla` – Automatika / Jen čerpadlo / Jen záložní topení / Vypnuto / Ruční režim / Chlazení.
 - `typ_regulace` – AcondTherm / Equiterm / Ručně.
-- `tichy_rezim_od` / `_do` – minuty od půlnoci, atribut `time` ve tvaru `06:30`.
 
 **Binární sensory** – všech 16 bitů stavového slova 30007 (stejné bity jako atributy `stav_cerpadla_30007`)
 
@@ -59,7 +56,7 @@ takže je lze přidat do **Nastavení → Dashboardy → Energie** (vytápění 
 
 ## Jak se čte
 
-Čte se **11 malých bloků**, každý zvlášť – jednotka, která neumí dlouhý blok nebo nemá
+Čte se **10 malých bloků**, každý zvlášť – jednotka, která neumí dlouhý blok nebo nemá
 implementované některé adresy, tak nezablokuje celou integraci:
 
 | Blok | Registry | Co v něm je |
@@ -74,7 +71,6 @@ implementované některé adresy, tak nezablokuje celou integraci:
 | 8 | 30041 | SCOP |
 | 9 | 30069–30072 | energie chlazení (2× DINT) |
 | 10 | 30014–30015 | režim čerpadla, typ regulace |
-| 11 | 30033–30034 | tichý režim od/do |
 
 - 32bitové hodnoty (`DINT`, energie) se čtou jako dvě registry, **high word první** (Big Endian).
 - Teploty a COP jsou `INT ×10` → 228 = 22,8 °C, 45 = 4,5.

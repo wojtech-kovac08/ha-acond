@@ -49,10 +49,6 @@ async def async_setup_entry(
         if key in available:
             spec = next(spec for spec in coordinator.values if spec.key == key)
             entities.append(AcondEnumSensor(coordinator, entry, spec))
-    for key in ("silent_start", "silent_stop"):
-        if key in available:
-            spec = next(spec for spec in coordinator.values if spec.key == key)
-            entities.append(AcondMinutesSensor(coordinator, entry, spec))
 
     async_add_entities(entities)
 
@@ -198,40 +194,3 @@ class AcondEnumSensor(CoordinatorEntity[AcondCoordinator], SensorEntity):
         """Return the raw register value as well."""
         value = self.coordinator.data.get(self.spec.key)
         return {"raw": int(value)} if value is not None else {}
-
-
-class AcondMinutesSensor(CoordinatorEntity[AcondCoordinator], SensorEntity):
-    """Minutes from midnight (silent mode start/stop), with a HH:MM attribute."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: AcondCoordinator,
-        entry: ConfigEntry,
-        spec: ValueSpec,
-    ) -> None:
-        """Initialise the minutes sensor."""
-        super().__init__(coordinator)
-        self.spec = spec
-        self._attr_translation_key = spec.key
-        self._attr_unique_id = f"{entry.entry_id}_{spec.key}"
-        self._attr_icon = spec.icon
-        self._attr_native_unit_of_measurement = "min"
-        self._attr_device_class = SensorDeviceClass.DURATION
-        self._attr_device_info = _device_info(coordinator, entry)
-
-    @property
-    def native_value(self) -> int | None:
-        """Return the value in minutes."""
-        value = self.coordinator.data.get(self.spec.key)
-        return int(value) if value is not None else None
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the value as HH:MM."""
-        value = self.coordinator.data.get(self.spec.key)
-        if value is None:
-            return {}
-        minutes = int(value)
-        return {"time": f"{minutes // 60:02d}:{minutes % 60:02d}"}
