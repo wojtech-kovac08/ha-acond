@@ -10,14 +10,16 @@
           "slave": "Modbus unit ID",
           "scan_interval": "Polling interval (s)",
           "enable_circuit_2": "Second heating circuit",
-          "enable_energy": "Energy registers (COP, SCOP, kWh)"
+          "enable_energy": "Energy registers (COP, SCOP, kWh)",
+          "enable_silent": "Silent mode (30033-30034)"
         },
         "data_description": {
           "port": "Default is 502.",
           "slave": "Default is 1. Unit ID 2 is reserved for the HP cascade.",
           "scan_interval": "How often the temperatures are read, in seconds.",
           "enable_circuit_2": "Turn off when the unit has only one circuit.",
-          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
+          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable.",
+          "enable_silent": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
         }
       }
     },
@@ -42,11 +44,13 @@
           "slave": "Modbus unit ID",
           "scan_interval": "Polling interval (s)",
           "enable_circuit_2": "Second heating circuit",
-          "enable_energy": "Energy registers (COP, SCOP, kWh)"
+          "enable_energy": "Energy registers (COP, SCOP, kWh)",
+          "enable_silent": "Silent mode (30033-30034)"
         },
         "data_description": {
           "enable_circuit_2": "Turn off when the unit has only one circuit.",
-          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
+          "enable_energy": "Enable only when the unit implements these registers, otherwise the entities stay unavailable.",
+          "enable_silent": "Enable only when the unit implements these registers, otherwise the entities stay unavailable."
         }
       }
     },
@@ -115,6 +119,12 @@
       },
       "regulation_type": {
         "name": "Regulation type"
+      },
+      "silent_start": {
+        "name": "Silent mode start"
+      },
+      "silent_stop": {
+        "name": "Silent mode stop"
       }
     },
     "binary_sensor": {

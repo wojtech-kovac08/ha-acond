@@ -28,16 +28,19 @@ from .const import (
     CIRCUIT_2_KEYS,
     CONF_ENABLE_CIRCUIT_2,
     CONF_ENABLE_ENERGY,
+    CONF_ENABLE_SILENT,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
     DEFAULT_ENABLE_CIRCUIT_2,
     DEFAULT_ENABLE_ENERGY,
+    DEFAULT_ENABLE_SILENT,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
     DEFAULT_TIMEOUT,
     DOMAIN,
     ENERGY_BLOCKS,
+    SILENT_BLOCKS,
     VALUES,
     ValueSpec,
 )
@@ -60,8 +63,17 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         self.energy_enabled: bool = bool(
             settings.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY)
         )
+        self.silent_enabled: bool = bool(
+            settings.get(CONF_ENABLE_SILENT, DEFAULT_ENABLE_SILENT)
+        )
         self.circuit_2_enabled: bool = bool(
             settings.get(CONF_ENABLE_CIRCUIT_2, DEFAULT_ENABLE_CIRCUIT_2)
+        )
+
+        #: Blocks that are switched off by the options.
+        self.disabled_blocks: frozenset[int] = frozenset(
+            (set() if self.energy_enabled else ENERGY_BLOCKS)
+            | (set() if self.silent_enabled else SILENT_BLOCKS)
         )
 
         interval = settings.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -77,13 +89,12 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
             VALUES,
             CIRCUIT_2_KEYS,
             self.circuit_2_enabled,
-            ENERGY_BLOCKS,
-            self.energy_enabled,
+            self.disabled_blocks,
         )
 
         #: Block indexes to poll.
         self.block_indexes: tuple[int, ...] = enabled_block_indexes(
-            len(BLOCKS), ENERGY_BLOCKS, self.energy_enabled
+            len(BLOCKS), self.disabled_blocks
         )
 
         self.client = AcondModbusClient(

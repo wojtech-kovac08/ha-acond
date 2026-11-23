@@ -35,10 +35,12 @@ from .const import (
     BLOCKS,
     CONF_ENABLE_CIRCUIT_2,
     CONF_ENABLE_ENERGY,
+    CONF_ENABLE_SILENT,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
     DEFAULT_ENABLE_CIRCUIT_2,
     DEFAULT_ENABLE_ENERGY,
+    DEFAULT_ENABLE_SILENT,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
@@ -56,6 +58,7 @@ def _normalise(user_input: dict[str, Any]) -> dict[str, Any]:
         CONF_SLAVE: int(user_input[CONF_SLAVE]),
         CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
         CONF_ENABLE_ENERGY: bool(user_input.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY)),
+        CONF_ENABLE_SILENT: bool(user_input.get(CONF_ENABLE_SILENT, DEFAULT_ENABLE_SILENT)),
         CONF_ENABLE_CIRCUIT_2: bool(
             user_input.get(CONF_ENABLE_CIRCUIT_2, DEFAULT_ENABLE_CIRCUIT_2)
         ),
@@ -109,6 +112,10 @@ def _schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_ENABLE_ENERGY,
                 default=data.get(CONF_ENABLE_ENERGY, DEFAULT_ENABLE_ENERGY),
+            ): BooleanSelector(),
+            vol.Required(
+                CONF_ENABLE_SILENT,
+                default=data.get(CONF_ENABLE_SILENT, DEFAULT_ENABLE_SILENT),
             ): BooleanSelector(),
         }
     )

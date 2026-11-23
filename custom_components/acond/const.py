@@ -15,6 +15,7 @@ MODEL = "AC781180 / AC781150"
 CONF_SLAVE = "slave"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_ENABLE_ENERGY = "enable_energy"
+CONF_ENABLE_SILENT = "enable_silent"
 CONF_ENABLE_CIRCUIT_2 = "enable_circuit_2"
 
 DEFAULT_PORT = 502
@@ -24,6 +25,8 @@ DEFAULT_TIMEOUT = 5  # seconds
 
 #: Off by default - many units do not implement these registers at all.
 DEFAULT_ENABLE_ENERGY = False
+#: Off by default - the unit must implement registers 30033/30034.
+DEFAULT_ENABLE_SILENT = False
 #: On by default, can be switched off for single circuit units.
 DEFAULT_ENABLE_CIRCUIT_2 = True
 
@@ -42,6 +45,7 @@ BLOCKS: tuple[tuple[int, int], ...] = (
     (40, 1),  # 30041 SCOP
     (68, 4),  # 30069-30072 energy cooling (2 x DINT)
     (13, 2),  # 30014-30015 HP mode, type of regulation
+    (32, 2),  # 30033-30034 silent mode start/stop
 )
 
 
@@ -124,6 +128,15 @@ VALUES: tuple[ValueSpec, ...] = (
         "energy_cooling_electric_total", 8, 2, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
+    # --- silent mode (minutes from midnight) ----------------------------
+    ValueSpec(
+        "silent_start", 10, 0, "u16",
+        device_class="duration", unit="min", icon="mdi:weather-night",
+    ),
+    ValueSpec(
+        "silent_stop", 10, 1, "u16",
+        device_class="duration", unit="min", icon="mdi:weather-night",
+    ),
     # --- HP mode and type of regulation ---------------------------------
     ValueSpec("hp_mode", 9, 0, "i16", icon="mdi:heat-pump", state_map=HP_MODES),
     ValueSpec(
@@ -136,6 +149,8 @@ CUSTOM_SENSOR_KEYS = frozenset(
     {
         "fault_code",
         "status_word",
+        "silent_start",
+        "silent_stop",
         "hp_mode",
         "regulation_type",
     }
@@ -143,6 +158,9 @@ CUSTOM_SENSOR_KEYS = frozenset(
 
 #: Indexes in BLOCKS that carry the optional "energy" values (COP, SCOP, kWh).
 ENERGY_BLOCKS = frozenset({5, 6, 7, 8})
+
+#: Indexes in BLOCKS that carry the optional silent mode registers.
+SILENT_BLOCKS = frozenset({10})
 
 #: Values of the optional second heating circuit.
 CIRCUIT_2_KEYS = frozenset({"setpoint_circuit_2", "temperature_circuit_2"})

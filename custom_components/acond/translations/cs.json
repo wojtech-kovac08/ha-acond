@@ -10,14 +10,16 @@
           "slave": "Modbus ID jednotky",
           "scan_interval": "Interval čtení (s)",
           "enable_circuit_2": "Druhý topný okruh",
-          "enable_energy": "Energetické registry (COP, SCOP, energie)"
+          "enable_energy": "Energetické registry (COP, SCOP, energie)",
+          "enable_silent": "Tichý režim (30033–30034)"
         },
         "data_description": {
           "port": "Výchozí je 502.",
           "slave": "Výchozí je 1. ID 2 je obsazené pro kaskádu HP.",
           "scan_interval": "Jak často se teploty načítají, v sekundách.",
           "enable_circuit_2": "Vypněte, pokud jednotka druhý okruh nemá.",
-          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
+          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné.",
+          "enable_silent": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
         }
       }
     },
@@ -42,11 +44,13 @@
           "slave": "Modbus ID jednotky",
           "scan_interval": "Interval čtení (s)",
           "enable_circuit_2": "Druhý topný okruh",
-          "enable_energy": "Energetické registry (COP, SCOP, energie)"
+          "enable_energy": "Energetické registry (COP, SCOP, energie)",
+          "enable_silent": "Tichý režim (30033–30034)"
         },
         "data_description": {
           "enable_circuit_2": "Vypněte, pokud jednotka druhý okruh nemá.",
-          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
+          "enable_energy": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné.",
+          "enable_silent": "Zapněte jen když jednotka tyto registry podporuje; jinak zůstanou entity nedostupné."
         }
       }
     },
@@ -115,6 +119,12 @@
       },
       "regulation_type": {
         "name": "Typ regulace"
+      },
+      "silent_start": {
+        "name": "Tichý režim – od"
+      },
+      "silent_stop": {
+        "name": "Tichý režim – do"
       }
     },
     "binary_sensor": {
