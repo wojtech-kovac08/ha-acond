@@ -1,15 +1,21 @@
 """Climate platform for the Acond heat pump.
 
-The entity is read only: it shows the measured and the requested temperature
-of one heating circuit, both read from the input registers. Nothing is written
-to the heat pump.
+It shows the measured and the requested temperature of one heating circuit and
+can write a new requested temperature (40001 / 40003). The operating mode is
+not writable - the unit does not report one per circuit.
 """
 
 from __future__ import annotations
 
-from homeassistant.components.climate import ClimateEntity, HVACMode
+from typing import Any
+
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACMode,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -33,7 +39,7 @@ async def async_setup_entry(
 
 
 class AcondClimate(CoordinatorEntity[AcondCoordinator], ClimateEntity):
-    """Read only view of one heating circuit."""
+    """One heating circuit of the heat pump."""
 
     _attr_has_entity_name = True
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -43,6 +49,7 @@ class AcondClimate(CoordinatorEntity[AcondCoordinator], ClimateEntity):
     _attr_max_temp = TEMP_MAX
     #: The unit reports no per-circuit mode through the registers we read.
     _attr_hvac_modes = [HVACMode.HEAT]
+    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
 
     def __init__(
         self,
@@ -79,6 +86,13 @@ class AcondClimate(CoordinatorEntity[AcondCoordinator], ClimateEntity):
     def hvac_mode(self) -> HVACMode:
         """Return the only mode this read only entity reports."""
         return HVACMode.HEAT
+
+    async def async_set_temperature(self, **kwargs: Any) -> None:
+        """Write a new requested temperature for this circuit."""
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        if temperature is None:
+            return
+        await self.coordinator.async_set_temperature(self.circuit, float(temperature))
 
     @property
     def available(self) -> bool:

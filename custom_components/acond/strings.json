@@ -184,6 +184,22 @@
       "circuit_2": {
         "name": "Heating circuit 2"
       }
+    },
+    "number": {
+      "setpoint_circuit_1": {
+        "name": "Setpoint circuit 1"
+      },
+      "setpoint_circuit_2": {
+        "name": "Setpoint circuit 2"
+      },
+      "setpoint_dhw": {
+        "name": "DHW setpoint"
+      }
+    },
+    "switch": {
+      "summer_mode": {
+        "name": "Summer mode"
+      }
     }
   }
 }

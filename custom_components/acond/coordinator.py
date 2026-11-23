@@ -38,9 +38,14 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE,
     DEFAULT_TIMEOUT,
+    DHW_TARGET_REGISTER,
     DOMAIN,
     ENERGY_BLOCKS,
+    SETTINGS_REGISTER,
     SILENT_BLOCKS,
+    SUMMER_BIT,
+    SUMMER_BIT_INVERTED,
+    TARGET_REGISTERS,
     VALUES,
     ValueSpec,
 )
@@ -51,7 +56,7 @@ AcondData = dict[str, float | int]
 
 
 class AcondCoordinator(DataUpdateCoordinator[AcondData]):
-    """Poll the heat pump and keep the decoded values."""
+    """Poll the heat pump, decode values and write the few writable registers."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialise the coordinator from the config entry."""
@@ -180,7 +185,9 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
             if spec.kind == "i32":
                 if len(registers) < spec.offset + 2:
                     continue
-                value = to_signed32((registers[spec.offset] << 16) | registers[spec.offset + 1])
+                value = to_signed32(
+                    (registers[spec.offset] << 16) | registers[spec.offset + 1]
+                )
             elif spec.kind == "u16":
                 value = registers[spec.offset]
             else:
@@ -188,7 +195,44 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
 
             data[spec.key] = value if spec.divisor == 1 else round(value / spec.divisor, 1)
 
+        # 40006 - needed by the season switch (and to preserve its other bits).
+        try:
+            settings = await self.client.async_read_holding_registers(
+                SETTINGS_REGISTER, 1
+            )
+        except (AcondError, OSError, asyncio.TimeoutError) as err:
+            _LOGGER.debug("Cannot read the settings word (40006): %s", err)
+        else:
+            data["settings_word"] = settings[0]
+
         return data
+
+    # --------------------------------------------------------------- writes
+    async def async_set_temperature(self, circuit: int, temperature: float) -> None:
+        """Write a requested room temperature (40001 / 40003)."""
+        if circuit not in TARGET_REGISTERS:
+            raise AcondError(f"Unknown circuit {circuit}")
+
+        raw = max(0, int(round(temperature * 10)))
+        await self.client.async_connect()
+        await self.client.async_write_register(TARGET_REGISTERS[circuit], raw)
+        await self.async_request_refresh()
+
+    async def async_set_dhw_temperature(self, temperature: float) -> None:
+        """Write the requested DHW temperature (40005)."""
+        raw = max(0, int(round(temperature * 10)))
+        await self.client.async_connect()
+        await self.client.async_write_register(DHW_TARGET_REGISTER, raw)
+        await self.async_request_refresh()
+
+    async def async_set_summer(self, summer: bool) -> None:
+        """Set or clear the season bit in 40006, keeping the other bits."""
+        await self.client.async_connect()
+        current = (await self.client.async_read_holding_registers(SETTINGS_REGISTER, 1))[0]
+        wanted = summer != SUMMER_BIT_INVERTED
+        word = current | (1 << SUMMER_BIT) if wanted else current & ~(1 << SUMMER_BIT)
+        await self.client.async_write_register(SETTINGS_REGISTER, word)
+        await self.async_request_refresh()
 
     async def async_shutdown(self) -> None:
         """Close the Modbus connection."""

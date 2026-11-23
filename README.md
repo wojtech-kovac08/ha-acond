@@ -4,12 +4,12 @@
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=acond)
 ![verze](https://img.shields.io/badge/verze-0.7.1-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2024.2%2B-41BDF5)
-![read only](https://img.shields.io/badge/režim-read--only-success)
+![zápis](https://img.shields.io/badge/zápis-teploty%20%2B%20sez%C3%B3na-orange)
 ![licence](https://img.shields.io/badge/licence-MIT-lightgrey)
 
 Nevýhradní (unofficial) integrace pro tepelná čerpadla **Acond** komunikující přes **Modbus TCP**.
-Čte teploty, stavy a diagnostiku dvou topných okruhů a vystavuje je jako `climate`, `sensor`
-a `binary_sensor` entity — **do jednotky se nikdy nezapisuje**.
+Čte teploty, stavy a diagnostiku dvou topných okruhů a umí nastavit **žádané teploty**
+(oba okruhy + TUV) a **letní/zimní režim**. Nic jiného se do jednotky nezapisuje.
 
 ---
 
@@ -40,7 +40,8 @@ Nebo klikni na tlačítko **„Open … in My Home Assistant"** nahoře.
 
 ## Entity
 
-Všechno je **read only**. Počet entit závisí na zapnutých volbách (viz [Konfigurace](#konfigurace)).
+Většina entit je jen pro čtení. Zapisují pouze tři `number` entity a `switch` pro sezónu.
+Počet entit závisí na zapnutých volbách (viz [Konfigurace](#konfigurace)).
 
 ### Climate
 
@@ -49,8 +50,8 @@ Všechno je **read only**. Počet entit závisí na zapnutých volbách (viz [Ko
 | `climate.acond_hp_topny_okruh_1` | 30002 | 30001 |
 | `climate.acond_hp_topny_okruh_2` | 30004 | 30003 |
 
-Climate jen zobrazuje — nepodporuje `TARGET_TEMPERATURE`, takže v kartě není posuvník.
-Jde o záměr: integrace nic nenastavuje.
+Climate umí i **nastavit žádanou teplotu** — zapisuje do 40001 / 40003, takže v Bubble Card
+se zobrazí posuvník. Režim (topení/chlazení) měnit nelze, ten jednotka per okruh nehlásí.
 
 Pro **Bubble Card**:
 
@@ -59,6 +60,25 @@ type: custom:bubble-card
 card_type: climate
 entity: climate.acond_hp_topny_okruh_1
 ```
+
+### Number — žádané teploty (zápis)
+
+| Entita | Čte | Zapisuje | Rozsah |
+|---|---|---|---|
+| `number.acond_hp_zadana_teplota_okruh_1` | 30001 | 40001 | 10–30 °C |
+| `number.acond_hp_zadana_teplota_okruh_2` | 30003 | 40003 | 10–30 °C |
+| `number.acond_hp_zadana_teplota_tuv` | 30005 | 40005 | 10–46 °C |
+
+### Switch — sezóna (zápis)
+
+| Entita | Registr | Význam |
+|---|---|---|
+| `switch.acond_hp_letni_rezim` | 40006, bit 8 | zapnuto = letní režim, vypnuto = zimní |
+
+Zapisuje se jen **bit 8**, ostatní bity slova 40006 (režim, potvrzení poruchy, SG ready…)
+zůstávají nedotčené — integrace si je před zápisem přečte.
+
+> Pokud by tvoje jednotka měla polaritu opačně, přepni `SUMMER_BIT_INVERTED = True` v `const.py`.
 
 ### Senzory (základ — vždy)
 
@@ -170,8 +190,17 @@ by odmítla celý dotaz. Takhle spadne jen ten jeden blok.
 | `DINT` | 32bitové energie | 2 registry, **high word první** |
 | `WORD` | bitová maska | 33 = bit 0 + bit 5 |
 
-**Žádný zápis.** Transport umí jen `connect`, `read_input_registers` a `close`.
-V kódu není ani jedno `write_register` / `write_coils` — hlídá to i validační skript.
+**Zápis jen tam, kde to dává smysl.** Transport umí `read_input_registers`,
+`read_holding_registers`, `write_register` (FC6) a `close`. Zapisuje se výhradně:
+
+| Registr | Co | Odkud |
+|---|---|---|
+| 40001 / 40003 | žádaná teplota okruhu | `number`, `climate` |
+| 40005 | žádaná teplota TUV | `number` |
+| 40006, bit 8 | léto/zima | `switch` |
+
+Nic jiného — žádné režimy, žádné křivky, žádné čerpadlo. Hlídá to i validační skript
+(`check_repo.py`), který zápis kamkoli jinam odmítne.
 
 ---
 
@@ -286,8 +315,8 @@ Log v HA filtruj na `acond` — jsou tam konkrétní chyby i rozsahy registrů.
 
 ## Omezení
 
-- Integrace je **read only** — žádný zápis, žádné změny nastavení jednotky.
-- Teplota se nastavuje na jednotce nebo v jejím webovém rozhraní.
+- Zapisují se jen 4 registry výše. Režim (topení/chlazení), křivky ani čerpadlo měnit nelze.
+- Hodnota mimo rozsah (10–30 °C, resp. 10–46 °C pro TUV) jednotka ignoruje.
 - `climate` hlásí vždy `heat` (režim okruhu se z těchto registrů nedá zjistit).
 - Jen **jeden master** může jednotku číst současně.
 
@@ -295,7 +324,8 @@ Log v HA filtruj na `acond` — jsou tam konkrétní chyby i rozsahy registrů.
 
 ## Roadmap
 
-- [x] Teploty 2 okruhů + `climate` (read only)
+- [x] Teploty 2 okruhů + `climate`
+- [x] Zápis žádaných teplot (okruhy + TUV) a letní/zimní režim
 - [x] TUV, venkovní, vratná a výstupní voda
 - [x] Energie, COP, SCOP (volitelně)
 - [x] Binární senzory ze stavového slova 30007

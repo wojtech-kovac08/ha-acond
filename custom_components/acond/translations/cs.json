@@ -184,6 +184,22 @@
       "circuit_2": {
         "name": "Topný okruh 2"
       }
+    },
+    "number": {
+      "setpoint_circuit_1": {
+        "name": "Žádaná teplota okruh 1"
+      },
+      "setpoint_circuit_2": {
+        "name": "Žádaná teplota okruh 2"
+      },
+      "setpoint_dhw": {
+        "name": "Žádaná teplota TUV"
+      }
+    },
+    "switch": {
+      "summer_mode": {
+        "name": "Letní režim"
+      }
     }
   }
 }

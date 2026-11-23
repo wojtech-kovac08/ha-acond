@@ -261,6 +261,21 @@ FAULT_CODES: dict[int, tuple[str, str]] = {
     96: ("ST2", "SERIOUS FAULT IN THE ENGINE ROOM"),
 }
 
-#: Display range of the requested temperature (attributes only).
+#: Display range of the requested temperature.
 TEMP_MIN = 10.0
 TEMP_MAX = 30.0
+
+# ---- writable registers -------------------------------------------------
+#: circuit -> holding register offset of the requested temperature (40001, 40003).
+TARGET_REGISTERS: dict[int, int] = {1: 0, 2: 2}
+#: 40005 - requested DHW temperature.
+DHW_TARGET_REGISTER = 4
+#: 40006 - bitwise HP settings (mode, acknowledgement, season).
+SETTINGS_REGISTER = 5
+#: Bit 8 of 40006 switches between summer and winter operation.
+SUMMER_BIT = 8
+#: Set to True if your unit uses the inverted meaning of that bit.
+SUMMER_BIT_INVERTED = False
+
+DHW_MIN = 10.0
+DHW_MAX = 46.0

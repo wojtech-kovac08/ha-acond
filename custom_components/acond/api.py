@@ -56,8 +56,8 @@ def to_signed32(value: int) -> int:
 class AcondModbusClient:
     """Thin async wrapper around pymodbus for one heat pump.
 
-    Only reading is implemented on purpose - this integration never writes
-    to the heat pump.
+    Reads input registers and writes single holding registers (function 6).
+    Only the values exposed by the number/switch/climate platforms are written.
     """
 
     def __init__(
@@ -129,6 +129,59 @@ class AcondModbusClient:
         if result.isError():
             raise AcondModbusError(f"Modbus exception response to {description}: {result}")
         return list(result.registers)
+
+    async def async_read_holding_registers(self, address: int, count: int) -> list[int]:
+        """Read ``count`` holding registers starting at PDU ``address``."""
+        if self._client is None:
+            raise AcondConnectionError("Modbus client is not connected")
+
+        description = f"read of {count} holding register(s) at {address}"
+        try:
+            result = await self._client.read_holding_registers(
+                address, count=count, **self._unit_kwargs()
+            )
+        except ModbusIOException as err:
+            self.close()
+            raise AcondNoResponseError(f"No response during {description}: {err}") from err
+        except (ConnectionException, asyncio.TimeoutError, OSError) as err:
+            self.close()
+            raise AcondConnectionError(f"Communication error during {description}: {err}") from err
+        except ModbusException as err:
+            self.close()
+            raise AcondModbusError(f"Modbus error during {description}: {err}") from err
+        except Exception as err:  # noqa: BLE001
+            self.close()
+            raise AcondError(f"Unexpected error during {description}: {err!r}") from err
+
+        if result is None or result.isError():
+            raise AcondModbusError(f"Modbus exception response to {description}: {result}")
+        return list(result.registers)
+
+    async def async_write_register(self, address: int, value: int) -> None:
+        """Write one holding register (function code 6)."""
+        if self._client is None:
+            raise AcondConnectionError("Modbus client is not connected")
+
+        description = f"write of {value} to holding register {address}"
+        try:
+            result = await self._client.write_register(
+                address, int(value), **self._unit_kwargs()
+            )
+        except ModbusIOException as err:
+            self.close()
+            raise AcondNoResponseError(f"No response during {description}: {err}") from err
+        except (ConnectionException, asyncio.TimeoutError, OSError) as err:
+            self.close()
+            raise AcondConnectionError(f"Communication error during {description}: {err}") from err
+        except ModbusException as err:
+            self.close()
+            raise AcondModbusError(f"Modbus error during {description}: {err}") from err
+        except Exception as err:  # noqa: BLE001
+            self.close()
+            raise AcondError(f"Unexpected error during {description}: {err!r}") from err
+
+        if result is None or result.isError():
+            raise AcondModbusError(f"Modbus exception response to {description}: {result}")
 
     def _unit_kwargs(self) -> dict[str, int]:
         """Return the unit id keyword this pymodbus version understands."""
