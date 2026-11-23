@@ -13,6 +13,7 @@ try:  # Home Assistant >= 2024.4
     from homeassistant.config_entries import ConfigFlowResult
 except ImportError:  # pragma: no cover - older Home Assistant
     from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult
+
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
@@ -22,7 +23,13 @@ from homeassistant.helpers.selector import (
     TextSelector,
 )
 
-from .api import AcondError, AcondModbusClient
+from .api import (
+    AcondConnectionError,
+    AcondError,
+    AcondModbusClient,
+    AcondModbusError,
+    AcondNoResponseError,
+)
 from .const import (
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
@@ -37,8 +44,18 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _normalise(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Coerce the form values to the types the Modbus stack expects."""
+    return {
+        CONF_HOST: str(user_input[CONF_HOST]).strip(),
+        CONF_PORT: int(user_input[CONF_PORT]),
+        CONF_SLAVE: int(user_input[CONF_SLAVE]),
+        CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+    }
+
+
 async def _async_probe(host: str, port: int, slave: int) -> None:
-    """Try to read the temperature block; raise on failure."""
+    """Try to read the temperature block; raise AcondError on failure."""
     client = AcondModbusClient(host, port=port, slave=slave)
     try:
         await client.async_connect()
@@ -90,27 +107,39 @@ class AcondConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            data = _normalise(user_input)
             await self.async_set_unique_id(
-                f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}:{user_input[CONF_SLAVE]}"
+                f"{data[CONF_HOST]}:{data[CONF_PORT]}:{data[CONF_SLAVE]}"
             )
             self._abort_if_unique_id_configured()
 
             try:
-                await _async_probe(
-                    user_input[CONF_HOST],
-                    user_input[CONF_PORT],
-                    user_input[CONF_SLAVE],
+                await _async_probe(data[CONF_HOST], data[CONF_PORT], data[CONF_SLAVE])
+            except AcondConnectionError as err:
+                _LOGGER.warning(
+                    "Cannot reach the heat pump at %s:%s: %s",
+                    data[CONF_HOST],
+                    data[CONF_PORT],
+                    err,
                 )
-            except AcondError as err:
-                _LOGGER.debug("Probe failed: %s", err)
                 errors["base"] = "cannot_connect"
-            except Exception:  # noqa: BLE001 - unexpected socket/OS errors
+            except AcondNoResponseError as err:
+                _LOGGER.warning(
+                    "Heat pump at %s did not answer: %s", data[CONF_HOST], err
+                )
+                errors["base"] = "no_response"
+            except AcondModbusError as err:
+                _LOGGER.warning(
+                    "Heat pump at %s answered with an error: %s", data[CONF_HOST], err
+                )
+                errors["base"] = "modbus_error"
+            except Exception:  # noqa: BLE001 - report, do not crash the flow
                 _LOGGER.exception("Unexpected error while probing the heat pump")
                 errors["base"] = "unknown"
             else:
                 return self.async_create_entry(
-                    title=f"Acond HP ({user_input[CONF_HOST]})",
-                    data=user_input,
+                    title=f"Acond HP ({data[CONF_HOST]})",
+                    data=data,
                 )
 
         return self.async_show_form(
@@ -136,20 +165,23 @@ class AcondOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            data = _normalise(user_input)
             try:
-                await _async_probe(
-                    user_input[CONF_HOST],
-                    user_input[CONF_PORT],
-                    user_input[CONF_SLAVE],
-                )
-            except AcondError as err:
-                _LOGGER.debug("Probe failed: %s", err)
+                await _async_probe(data[CONF_HOST], data[CONF_PORT], data[CONF_SLAVE])
+            except AcondConnectionError as err:
+                _LOGGER.warning("Cannot reach the heat pump: %s", err)
                 errors["base"] = "cannot_connect"
+            except AcondNoResponseError as err:
+                _LOGGER.warning("Heat pump did not answer: %s", err)
+                errors["base"] = "no_response"
+            except AcondModbusError as err:
+                _LOGGER.warning("Heat pump answered with an error: %s", err)
+                errors["base"] = "modbus_error"
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Unexpected error while probing the heat pump")
                 errors["base"] = "unknown"
             else:
-                return self.async_create_entry(title="", data=user_input)
+                return self.async_create_entry(title="", data=data)
 
         entry = self.hass.config_entries.async_get_entry(self.handler)
         current = {**(entry.data if entry else {}), **(entry.options if entry else {})}

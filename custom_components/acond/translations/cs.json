@@ -18,8 +18,10 @@
       }
     },
     "error": {
-      "cannot_connect": "Nepodařilo se přečíst data z čerpadla. Zkontrolujte IP adresu, port, ID jednotky a že je Modbus TCP aktivovaný a zaškrtnutý v jednotce.",
-      "unknown": "Neočekávaná chyba."
+      "cannot_connect": "Na zadané adrese a portu se nepodařilo otevřít TCP spojení. Zkontrolujte IP adresu, port 502 a že je jednotka v síti.",
+      "no_response": "Spojení se navázalo, ale jednotka neodpovídá na Modbus dotazy. Zkontrolujte, že je ModbusTCP v jednotce aktivovaný servisem a zaškrtnutý v tmavě modrém pruhu na hlavní stránce, a že ID jednotky je správné (1).",
+      "modbus_error": "Jednotka odpověděla chybou Modbusu. Zkontrolujte, že firmware jednotky odpovídá dokumentaci v4.3.3.25 a že čtete registry 30001-30004.",
+      "unknown": "Neočekávaná chyba. Podrobnosti najdete v logu Home Assistant (filtr: acond)."
     },
     "abort": {
       "already_configured": "Toto čerpadlo je už nakonfigurované."
@@ -39,8 +41,10 @@
       }
     },
     "error": {
-      "cannot_connect": "Nepodařilo se přečíst data z čerpadla. Zkontrolujte IP adresu, port, ID jednotky a že je Modbus TCP aktivovaný a zaškrtnutý v jednotce.",
-      "unknown": "Neočekávaná chyba."
+      "cannot_connect": "Na zadané adrese a portu se nepodařilo otevřít TCP spojení. Zkontrolujte IP adresu, port 502 a že je jednotka v síti.",
+      "no_response": "Spojení se navázalo, ale jednotka neodpovídá na Modbus dotazy. Zkontrolujte, že je ModbusTCP v jednotce aktivovaný a zaškrtnutý, a že ID jednotky je správné (1).",
+      "modbus_error": "Jednotka odpověděla chybou Modbusu.",
+      "unknown": "Neočekávaná chyba. Podrobnosti najdete v logu Home Assistant (filtr: acond)."
     }
   },
   "entity": {

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Acond heat pump",
-        "description": "Enter the Modbus TCP connection details of the heat pump. Modbus TCP must be activated in the unit by the service department.",
+        "description": "Enter the Modbus TCP connection details of the heat pump. Modbus TCP must be activated in the unit by the service department and enabled on the main page.",
         "data": {
           "host": "IP address / hostname",
           "port": "TCP port",
@@ -18,8 +18,10 @@
       }
     },
     "error": {
-      "cannot_connect": "Cannot read data from the heat pump. Check the IP address, port, unit ID and that Modbus TCP is activated and enabled in the unit.",
-      "unknown": "Unexpected error."
+      "cannot_connect": "Cannot open a TCP connection to the given address and port. Check the IP address, port 502 and that the unit is on the network.",
+      "no_response": "The connection was established but the unit does not answer Modbus requests. Check that Modbus TCP is activated by service and ticked in the dark blue bar on the main page, and that the unit ID is correct (1).",
+      "modbus_error": "The unit returned a Modbus exception. Check that its firmware matches protocol documentation v4.3.3.25 and that registers 30001-30004 are read.",
+      "unknown": "Unexpected error. See the Home Assistant log (filter: acond) for details."
     },
     "abort": {
       "already_configured": "This heat pump is already configured."
@@ -39,8 +41,10 @@
       }
     },
     "error": {
-      "cannot_connect": "Cannot read data from the heat pump. Check the IP address, port, unit ID and that Modbus TCP is activated and enabled in the unit.",
-      "unknown": "Unexpected error."
+      "cannot_connect": "Cannot open a TCP connection to the given address and port. Check the IP address, port 502 and that the unit is on the network.",
+      "no_response": "The connection was established but the unit does not answer Modbus requests. Check that Modbus TCP is activated and ticked, and that the unit ID is correct (1).",
+      "modbus_error": "The unit returned a Modbus exception.",
+      "unknown": "Unexpected error. See the Home Assistant log (filter: acond) for details."
     }
   },
   "entity": {
