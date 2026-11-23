@@ -1,6 +1,6 @@
 # Acond Heat Pump — Home Assistant integrace
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=wojtech-kovac08&repository=ha-acond&category=integration)
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=wojtech-kovac08&repository=ha-acond&category=integration)
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=acond)
 ![verze](https://img.shields.io/badge/verze-0.6.0-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2024.2%2B-41BDF5)
@@ -29,7 +29,7 @@ a `binary_sensor` entity — **do jednotky se nikdy nezapisuje**.
 
 ## Rychlý start
 
-1. HACS → **⋮ → Custom repositories** → `https://github.com/wojtech-kovac08/ha-acond` → kategorie **Integration**
+1. Klikni na tlačítko **Marketplace** výše — přidá repo do tvého Marketplace/HACS a otevře ho
 2. Nainstaluj **Acond Heat Pump** a restartuj Home Assistant
 3. **Nastavení → Zařízení a služby → Přidat integraci → Acond Heat Pump**
 4. Zadej IP adresu jednotky, port `502`, Modbus ID `1`
@@ -177,12 +177,19 @@ V kódu není ani jedno `write_register` / `write_coils` — hlídá to i valida
 
 ## Instalace
 
-### HACS (doporučeno)
+### Marketplace / HACS (doporučeno)
 
-1. HACS → **⋮ → Custom repositories**
+Nejjednodušší je tlačítko **„Open … in the Marketplace"** nahoře — otevře repo přímo
+v Marketplace tvé instance a nabídne jeho přidání jako custom repository.
+
+Ručně:
+
+1. **Marketplace** (v HA 2026.11+, dříve **HACS**) → **⋮ → Custom repositories**
 2. URL `https://github.com/wojtech-kovac08/ha-acond`, kategorie **Integration**
 3. Nainstalovat **Acond Heat Pump** → restart HA
 4. Přidat integraci
+
+Marketplace i HACS čtou stejný katalog, takže funguje obojí.
 
 ### Ručně
 
@@ -297,7 +304,26 @@ Log v HA filtruj na `acond` — jsou tam konkrétní chyby i rozsahy registrů.
 - [x] Tichý režim (volitelně)
 - [ ] Diagnostika driveru (30023) jako samostatný sensor
 - [ ] `diagnostics.py` pro snadné reporty
-- [ ] GitHub Actions (hassfest + HACS validation)
+- [x] GitHub Actions (hassfest + HACS validation)
+- [ ] Zařazení do katalogu Marketplace
+
+---
+
+## Zařazení do katalogu Marketplace
+
+Aby se integrace objevila v katalogu (a nemusela se přidávat ručně odkazem), musí projít revizí
+v [hacs/default](https://github.com/hacs/default). Co k tomu repo potřebuje:
+
+- [x] `manifest.json` s `domain`, `name`, `version`, `documentation`, `issue_tracker`, `codeowners`
+- [x] `hacs.json` s `name`
+- [x] `README.md`
+- [x] brand ikona — `custom_components/acond/brand/icon.png`
+- [x] GitHub Actions: **hassfest** a **HACS validation** (`.github/workflows/validate.yml`)
+- [ ] **vydaný GitHub release** (samotný tag nestačí)
+- [ ] popis repa, topics a zapnuté issues na GitHubu
+- [ ] PR do `hacs/default` → soubor `integration`, abecedně
+
+Revize nových repozitářů trvá měsíce. Do té doby funguje přidání přes odkaz výše.
 
 ---
 
