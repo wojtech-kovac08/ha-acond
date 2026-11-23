@@ -1,10 +1,9 @@
-"""Modbus TCP transport for the Acond heat pump."""
+"""Modbus TCP transport for the Acond heat pump (read only)."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Awaitable, Callable
 
 from pymodbus.client import AsyncModbusTcpClient
 
@@ -50,7 +49,11 @@ def to_signed(value: int) -> int:
 
 
 class AcondModbusClient:
-    """Thin async wrapper around pymodbus for one heat pump."""
+    """Thin async wrapper around pymodbus for one heat pump.
+
+    Only reading is implemented on purpose - this integration never writes
+    to the heat pump.
+    """
 
     def __init__(
         self,
@@ -95,40 +98,14 @@ class AcondModbusClient:
 
     async def async_read_input_registers(self, address: int, count: int) -> list[int]:
         """Read ``count`` input registers starting at PDU ``address``."""
-        return await self._async_call(
-            lambda: self._client.read_input_registers(
-                address, count=count, **self._unit_kwargs()
-            ),
-            f"read of {count} input register(s) at {address}",
-        )
-
-    async def async_read_holding_registers(self, address: int, count: int) -> list[int]:
-        """Read ``count`` holding registers starting at PDU ``address``."""
-        return await self._async_call(
-            lambda: self._client.read_holding_registers(
-                address, count=count, **self._unit_kwargs()
-            ),
-            f"read of {count} holding register(s) at {address}",
-        )
-
-    async def async_write_register(self, address: int, value: int) -> None:
-        """Write one holding register (function code 6)."""
-        await self._async_call(
-            lambda: self._client.write_register(
-                address, value, **self._unit_kwargs()
-            ),
-            f"write of {value} to holding register {address}",
-        )
-
-    async def _async_call(
-        self, call: Callable[[], Awaitable[Any]], description: str
-    ) -> list[int]:
-        """Run one Modbus call and translate pymodbus errors."""
         if self._client is None:
             raise AcondConnectionError("Modbus client is not connected")
 
+        description = f"read of {count} input register(s) at {address}"
         try:
-            result = await call()
+            result = await self._client.read_input_registers(
+                address, count=count, **self._unit_kwargs()
+            )
         except ModbusIOException as err:
             self.close()
             raise AcondNoResponseError(f"No response during {description}: {err}") from err
@@ -146,7 +123,7 @@ class AcondModbusClient:
             raise AcondNoResponseError(f"The heat pump returned no response to {description}")
         if result.isError():
             raise AcondModbusError(f"Modbus exception response to {description}: {result}")
-        return list(getattr(result, "registers", []))
+        return list(result.registers)
 
     def _unit_kwargs(self) -> dict[str, int]:
         """Return the unit id keyword this pymodbus version understands."""
