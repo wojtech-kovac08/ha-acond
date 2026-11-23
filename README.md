@@ -109,8 +109,22 @@ Zkopíruj složku `custom_components/acond` do `config/custom_components/acond` 
 - **„nepodařilo se otevřít TCP spojení"** – jednotka na dané IP/portu neposlouchá.
 - **„jednotka neodpovídá na Modbus dotazy"** – TCP jde, ale jednotka mlčí (ModbusTCP není zaškrtnuté, nebo špatné ID).
 - **„odmítla požadavek Modbus"** – jednotka vrátila exception response, obvykle na blok,
-  který nemá implementovaný. V logu (filtr `acond`) je přesně vidět které registry.
-  Integrace se i tak nastaví a čte ostatní bloky.
+  který nemá implementovaný. Integrace se i tak nastaví a čte ostatní bloky.
+  Po třech odmítnutích stejného bloku ho přestane čítat (aby nezasypával log)
+  a napíše `Heat pump does not implement registers 300xx-300yy`.
+
+## Diagnostika mapy registrů
+
+Když některé entity zůstávají `unknown`, jednotka dané registry nejspíš nemá.
+Skript `tools/probe_acond.py` projde adresy 30001–30079 a vypíše, které odpovídají:
+
+```bash
+pip install pymodbus
+python tools/probe_acond.py 192.168.0.11
+```
+
+Výstup ukáže rozsahy implementovaných registrů i první nenulové hodnoty.
+Podle něj se mapa v `const.py` upraví (nebo se nefunkční hodnoty vypustí).
 
 ## Roadmap
 

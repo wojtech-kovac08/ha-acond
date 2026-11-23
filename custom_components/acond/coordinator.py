@@ -14,7 +14,15 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .api import AcondConnectionError, AcondError, AcondModbusClient, to_signed, to_signed32
+from .api import (
+    AcondConnectionError,
+    AcondError,
+    AcondModbusClient,
+    AcondModbusError,
+    to_signed,
+    to_signed32,
+)
+from .blocks import BlockTracker
 from .const import (
     BLOCKS,
     CONF_SCAN_INTERVAL,
@@ -60,6 +68,8 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         )
         #: Blocks the unit refused during the last cycle (offset -> error).
         self.failed_blocks: dict[int, str] = {}
+        #: Remembers blocks the unit does not implement, so they are not retried.
+        self.tracker = BlockTracker()
 
     async def _async_update_data(self) -> AcondData:
         """Read the register blocks and decode every known value.
@@ -77,6 +87,8 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
         failed: dict[int, str] = {}
 
         for start, count in BLOCKS:
+            if not self.tracker.should_read(start):
+                continue
             try:
                 raw[start] = await self.client.async_read_input_registers(start, count)
             except AcondConnectionError as err:
@@ -87,16 +99,29 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
                     await self.client.async_connect()
                 except (AcondError, OSError):
                     break
+            except AcondModbusError as err:
+                failed[start] = str(err)
+                if self.tracker.record_error(start):
+                    _LOGGER.warning(
+                        "Heat pump does not implement registers %s-%s (%s) - "
+                        "they will not be polled until the integration is reloaded",
+                        30001 + start,
+                        30001 + start + count - 1,
+                        err,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "Heat pump refused registers %s-%s: %s",
+                        30001 + start,
+                        30001 + start + count - 1,
+                        err,
+                    )
             except AcondError as err:
                 failed[start] = str(err)
-                _LOGGER.warning(
-                    "Heat pump refused registers %s-%s: %s",
-                    30001 + start,
-                    30001 + start + count - 1,
-                    err,
-                )
             except (OSError, asyncio.TimeoutError) as err:
                 failed[start] = str(err)
+            else:
+                self.tracker.record_success(start)
 
         self.failed_blocks = failed
 
