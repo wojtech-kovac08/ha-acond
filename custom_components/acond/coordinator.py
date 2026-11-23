@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .api import AcondError, AcondModbusClient, to_signed, to_signed32
+from .api import AcondConnectionError, AcondError, AcondModbusClient, to_signed, to_signed32
 from .const import (
     BLOCKS,
     CONF_SCAN_INTERVAL,
@@ -58,33 +58,73 @@ class AcondCoordinator(DataUpdateCoordinator[AcondData]):
             slave=self.slave,
             timeout=DEFAULT_TIMEOUT,
         )
+        #: Blocks the unit refused during the last cycle (offset -> error).
+        self.failed_blocks: dict[int, str] = {}
 
     async def _async_update_data(self) -> AcondData:
-        """Read the register blocks and decode every known value."""
+        """Read the register blocks and decode every known value.
+
+        Each block is read on its own. A block the unit refuses only makes its
+        own values unavailable, the rest keeps working.
+        """
         try:
             await self.client.async_connect()
-            blocks = [
-                await self.client.async_read_input_registers(start, count)
-                for start, count in BLOCKS
-            ]
-        except (AcondError, OSError, asyncio.TimeoutError) as err:
+        except (AcondConnectionError, AcondError, OSError) as err:
             self.client.close()
-            raise UpdateFailed(f"Communication with the heat pump failed: {err}") from err
+            raise UpdateFailed(f"Cannot connect to the heat pump: {err}") from err
+
+        raw: dict[int, list[int]] = {}
+        failed: dict[int, str] = {}
+
+        for start, count in BLOCKS:
+            try:
+                raw[start] = await self.client.async_read_input_registers(start, count)
+            except AcondConnectionError as err:
+                # Connection dropped - reconnect once, then give up on the rest.
+                failed[start] = str(err)
+                _LOGGER.debug("Connection lost while reading %s: %s", 30001 + start, err)
+                try:
+                    await self.client.async_connect()
+                except (AcondError, OSError):
+                    break
+            except AcondError as err:
+                failed[start] = str(err)
+                _LOGGER.warning(
+                    "Heat pump refused registers %s-%s: %s",
+                    30001 + start,
+                    30001 + start + count - 1,
+                    err,
+                )
+            except (OSError, asyncio.TimeoutError) as err:
+                failed[start] = str(err)
+
+        self.failed_blocks = failed
+
+        if not raw:
+            self.client.close()
+            raise UpdateFailed(
+                "The heat pump did not answer a single register block. "
+                f"First error: {next(iter(failed.values()), 'unknown')}"
+            )
 
         data: AcondData = {}
         for spec in VALUES:
-            registers = blocks[spec.block]
-            if spec.kind == "i32":
-                raw = to_signed32((registers[spec.offset] << 16) | registers[spec.offset + 1])
-            elif spec.kind == "u16":
-                raw = registers[spec.offset]
-            else:
-                raw = to_signed(registers[spec.offset])
+            start, _ = BLOCKS[spec.block]
+            registers = raw.get(start)
+            if registers is None or len(registers) <= spec.offset:
+                continue
 
-            if spec.divisor == 1:
-                data[spec.key] = raw
+            if spec.kind == "i32":
+                if len(registers) < spec.offset + 2:
+                    continue
+                value = to_signed32((registers[spec.offset] << 16) | registers[spec.offset + 1])
+            elif spec.kind == "u16":
+                value = registers[spec.offset]
             else:
-                data[spec.key] = round(raw / spec.divisor, 1)
+                value = to_signed(registers[spec.offset])
+
+            data[spec.key] = value if spec.divisor == 1 else round(value / spec.divisor, 1)
+
         return data
 
     async def async_shutdown(self) -> None:

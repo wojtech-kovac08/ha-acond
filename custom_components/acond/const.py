@@ -20,11 +20,20 @@ DEFAULT_SLAVE = 1
 DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_TIMEOUT = 5  # seconds
 
-#: Blocks of input registers, read in this order.
+#: Small input register blocks, read independently.
 #: (first register offset from 30001, number of registers)
+#: Kept short on purpose: a unit that does not implement every address in a
+#: long block would reject the whole read.
 BLOCKS: tuple[tuple[int, int], ...] = (
-    (0, 44),  # 30001 .. 30044
-    (68, 4),  # 30069 .. 30072
+    (0, 4),  # 30001-30004 room circuits
+    (4, 4),  # 30005-30008 DHW setpoint/actual, status word
+    (8, 2),  # 30009-30010 return water, outdoor
+    (17, 1),  # 30018 outlet water
+    (20, 1),  # 30021 fault code
+    (28, 1),  # 30029 COP
+    (34, 4),  # 30035-30038 energy heating (2 x DINT)
+    (40, 1),  # 30041 SCOP
+    (68, 4),  # 30069-30072 energy cooling (2 x DINT)
 )
 
 
@@ -44,7 +53,12 @@ class ValueSpec:
     icon: str | None = None
 
 
-_TEMP = {"device_class": "temperature", "unit": "°C", "precision": 1, "state_class": "measurement"}
+_TEMP = {
+    "device_class": "temperature",
+    "unit": "°C",
+    "precision": 1,
+    "state_class": "measurement",
+}
 
 VALUES: tuple[ValueSpec, ...] = (
     # --- room circuits -------------------------------------------------
@@ -52,36 +66,36 @@ VALUES: tuple[ValueSpec, ...] = (
     ValueSpec("temperature_circuit_1", 0, 1, "i16", 10, **_TEMP),
     ValueSpec("setpoint_circuit_2", 0, 2, "i16", 10, **_TEMP),
     ValueSpec("temperature_circuit_2", 0, 3, "i16", 10, **_TEMP),
-    # --- domestic hot water --------------------------------------------
-    ValueSpec("setpoint_dhw", 0, 4, "i16", 10, **_TEMP),
-    ValueSpec("temperature_dhw", 0, 5, "i16", 10, **_TEMP),
+    # --- domestic hot water + status ------------------------------------
+    ValueSpec("setpoint_dhw", 1, 0, "i16", 10, **_TEMP),
+    ValueSpec("temperature_dhw", 1, 1, "i16", 10, **_TEMP),
+    ValueSpec("status_word", 1, 2, "u16"),
     # --- water / outdoor -----------------------------------------------
-    ValueSpec("temperature_return", 0, 8, "i16", 10, **_TEMP),
-    ValueSpec("temperature_outdoor", 0, 9, "i16", 10, **_TEMP),
-    ValueSpec("temperature_outlet", 0, 17, "i16", 10, **_TEMP),
+    ValueSpec("temperature_return", 2, 0, "i16", 10, **_TEMP),
+    ValueSpec("temperature_outdoor", 2, 1, "i16", 10, **_TEMP),
+    ValueSpec("temperature_outlet", 3, 0, "i16", 10, **_TEMP),
+    # --- fault ----------------------------------------------------------
+    ValueSpec("fault_code", 4, 0, "u16", icon="mdi:alert-circle-outline"),
     # --- efficiency -----------------------------------------------------
-    ValueSpec("cop", 0, 28, "i16", 10, precision=1, state_class="measurement", icon="mdi:gauge"),
-    ValueSpec("scop", 0, 40, "i16", 10, precision=1, state_class="measurement", icon="mdi:gauge"),
+    ValueSpec("cop", 5, 0, "i16", 10, precision=1, state_class="measurement", icon="mdi:gauge"),
+    ValueSpec("scop", 7, 0, "i16", 10, precision=1, state_class="measurement", icon="mdi:gauge"),
     # --- energy counters (DINT, 2 registers, high word first) -----------
     ValueSpec(
-        "energy_heating_total", 0, 34, "i32", 10,
+        "energy_heating_total", 6, 0, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
     ValueSpec(
-        "energy_heating_electric_total", 0, 36, "i32", 10,
+        "energy_heating_electric_total", 6, 2, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
     ValueSpec(
-        "energy_cooling_total", 1, 0, "i32", 10,
+        "energy_cooling_total", 8, 0, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
     ValueSpec(
-        "energy_cooling_electric_total", 1, 2, "i32", 10,
+        "energy_cooling_electric_total", 8, 2, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
-    # --- raw words ------------------------------------------------------
-    ValueSpec("status_word", 0, 6, "u16"),
-    ValueSpec("fault_code", 0, 20, "u16", icon="mdi:alert-circle-outline"),
 )
 
 #: Keys that are used by other platforms instead of plain sensors.

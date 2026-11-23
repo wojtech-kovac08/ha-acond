@@ -58,8 +58,10 @@ async def _async_probe(host: str, port: int, slave: int) -> None:
     client = AcondModbusClient(host, port=port, slave=slave)
     try:
         await client.async_connect()
-        for start, count in BLOCKS:
-            await client.async_read_input_registers(start, count)
+        # Probe only the first block - it is all the config flow needs and it
+        # is the block every unit answers.
+        start, count = BLOCKS[0]
+        await client.async_read_input_registers(start, count)
     finally:
         client.close()
 

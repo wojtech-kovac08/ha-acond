@@ -51,9 +51,25 @@ takže je lze přidat do **Nastavení → Dashboardy → Energie** (vytápění 
 
 ## Jak se čte
 
-- Blok **30001–30044** a blok **30069–30072** – dva požadavky na jeden cyklus.
+Čte se **9 malých bloků**, každý zvlášť – jednotka, která neumí dlouhý blok nebo nemá
+implementované některé adresy, tak nezablokuje celou integraci:
+
+| Blok | Registry | Co v něm je |
+|---|---|---|
+| 1 | 30001–30004 | teploty okruhů |
+| 2 | 30005–30008 | TV + stavové slovo 30007 |
+| 3 | 30009–30010 | vratná voda, venkovní |
+| 4 | 30018 | výstupní voda |
+| 5 | 30021 | kód poruchy |
+| 6 | 30029 | COP |
+| 7 | 30035–30038 | energie vytápění (2× DINT) |
+| 8 | 30041 | SCOP |
+| 9 | 30069–30072 | energie chlazení (2× DINT) |
+
 - 32bitové hodnoty (`DINT`, energie) se čtou jako dvě registry, **high word první** (Big Endian).
 - Teploty a COP jsou `INT ×10` → 228 = 22,8 °C, 45 = 4,5.
+- Když jednotka některý blok odmítne, jeho entity zůstanou `unknown`, ostatní fungují dál
+  a do logu se zapíše `Heat pump refused registers 300xx-300yy`.
 - Výchozí interval 30 s, volitelný 5–3600 s.
 
 ## Požadavky
@@ -92,7 +108,9 @@ Zkopíruj složku `custom_components/acond` do `config/custom_components/acond` 
 
 - **„nepodařilo se otevřít TCP spojení"** – jednotka na dané IP/portu neposlouchá.
 - **„jednotka neodpovídá na Modbus dotazy"** – TCP jde, ale jednotka mlčí (ModbusTCP není zaškrtnuté, nebo špatné ID).
-- **„odpověděla chybou Modbusu"** – firmware neodpovídá dokumentaci v4.3.3.25.
+- **„odmítla požadavek Modbus"** – jednotka vrátila exception response, obvykle na blok,
+  který nemá implementovaný. V logu (filtr `acond`) je přesně vidět které registry.
+  Integrace se i tak nastaví a čte ostatní bloky.
 
 ## Roadmap
 
