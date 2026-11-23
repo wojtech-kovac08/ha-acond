@@ -2,7 +2,7 @@
 
 [![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=wojtech-kovac08&repository=ha-acond&category=integration)
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=acond)
-![verze](https://img.shields.io/badge/verze-0.6.0-blue)
+![verze](https://img.shields.io/badge/verze-0.7.1-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2024.2%2B-41BDF5)
 ![read only](https://img.shields.io/badge/režim-read--only-success)
 ![licence](https://img.shields.io/badge/licence-MIT-lightgrey)
