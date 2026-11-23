@@ -1,0 +1,12 @@
+{
+  "domain": "acond",
+  "name": "Acond Heat Pump",
+  "codeowners": ["@Wojtech08"],
+  "config_flow": true,
+  "documentation": "https://github.com/Wojtech08/ha-acond",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/Wojtech08/ha-acond/issues",
+  "requirements": ["pymodbus>=3.6.0"],
+  "version": "0.1.0"
+}

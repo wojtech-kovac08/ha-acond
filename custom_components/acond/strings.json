@@ -1,0 +1,62 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Acond heat pump",
+        "description": "Enter the Modbus TCP connection details of the heat pump. Modbus TCP must be activated in the unit by the service department.",
+        "data": {
+          "host": "IP address / hostname",
+          "port": "TCP port",
+          "slave": "Modbus unit ID",
+          "scan_interval": "Polling interval (s)"
+        },
+        "data_description": {
+          "port": "Default is 502.",
+          "slave": "Default is 1. Unit ID 2 is reserved for the HP cascade.",
+          "scan_interval": "How often the temperatures are read, in seconds."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot read data from the heat pump. Check the IP address, port, unit ID and that Modbus TCP is activated and enabled in the unit.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This heat pump is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Acond heat pump",
+        "description": "Change the Modbus TCP connection settings.",
+        "data": {
+          "host": "IP address / hostname",
+          "port": "TCP port",
+          "slave": "Modbus unit ID",
+          "scan_interval": "Polling interval (s)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot read data from the heat pump. Check the IP address, port, unit ID and that Modbus TCP is activated and enabled in the unit.",
+      "unknown": "Unexpected error."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "setpoint_circuit_1": {
+        "name": "Setpoint circuit 1"
+      },
+      "temperature_circuit_1": {
+        "name": "Temperature circuit 1"
+      },
+      "setpoint_circuit_2": {
+        "name": "Setpoint circuit 2"
+      },
+      "temperature_circuit_2": {
+        "name": "Temperature circuit 2"
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tepelné čerpadlo Acond",
+        "description": "Zadejte přístupové údaje Modbus TCP. Modbus TCP musí být v jednotce aktivovaný servisem a zaškrtnutý na hlavní stránce.",
+        "data": {
+          "host": "IP adresa / hostname",
+          "port": "TCP port",
+          "slave": "Modbus ID jednotky",
+          "scan_interval": "Interval čtení (s)"
+        },
+        "data_description": {
+          "port": "Výchozí je 502.",
+          "slave": "Výchozí je 1. ID 2 je obsazené pro kaskádu HP.",
+          "scan_interval": "Jak často se teploty načítají, v sekundách."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nepodařilo se přečíst data z čerpadla. Zkontrolujte IP adresu, port, ID jednotky a že je Modbus TCP aktivovaný a zaškrtnutý v jednotce.",
+      "unknown": "Neočekávaná chyba."
+    },
+    "abort": {
+      "already_configured": "Toto čerpadlo je už nakonfigurované."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tepelné čerpadlo Acond",
+        "description": "Změna nastavení připojení Modbus TCP.",
+        "data": {
+          "host": "IP adresa / hostname",
+          "port": "TCP port",
+          "slave": "Modbus ID jednotky",
+          "scan_interval": "Interval čtení (s)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nepodařilo se přečíst data z čerpadla. Zkontrolujte IP adresu, port, ID jednotky a že je Modbus TCP aktivovaný a zaškrtnutý v jednotce.",
+      "unknown": "Neočekávaná chyba."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "setpoint_circuit_1": {
+        "name": "Žádaná teplota okruh 1"
+      },
+      "temperature_circuit_1": {
+        "name": "Aktuální teplota okruh 1"
+      },
+      "setpoint_circuit_2": {
+        "name": "Žádaná teplota okruh 2"
+      },
+      "temperature_circuit_2": {
+        "name": "Aktuální teplota okruh 2"
+      }
+    }
+  }
+}
