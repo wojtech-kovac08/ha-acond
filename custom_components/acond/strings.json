@@ -106,6 +106,21 @@
       },
       "fault_code": {
         "name": "Fault"
+      },
+      "status_word": {
+        "name": "Status word (30007)"
+      },
+      "hp_mode": {
+        "name": "HP mode"
+      },
+      "regulation_type": {
+        "name": "Regulation type"
+      },
+      "silent_start": {
+        "name": "Silent mode start"
+      },
+      "silent_stop": {
+        "name": "Silent mode stop"
       }
     },
     "binary_sensor": {

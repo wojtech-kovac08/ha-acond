@@ -34,11 +34,19 @@ Repo: <https://github.com/wojtech-kovac08/ha-acond>
 | `sensor.acond_hp_chlazeni_energie` | 30069 (DINT) | kWh |
 | `sensor.acond_hp_chlazeni_elektrina` | 30071 (DINT) | kWh |
 | `sensor.acond_hp_porucha` | 30021 | – |
+| `sensor.acond_hp_stav_cerpadla_30007` | 30007 | – |
+| `sensor.acond_hp_rezim_cerpadla` | 30014 | – |
+| `sensor.acond_hp_typ_regulace` | 30015 | – |
+| `sensor.acond_hp_tichy_rezim_od` | 30033 | min |
+| `sensor.acond_hp_tichy_rezim_do` | 30034 | min |
 
-`sensor.acond_hp_porucha` má stav ve tvaru kódu (`OK`, `A01`, `W07`, …) a atributy `code`, `description`.
-Tabulka všech 62+ kódů je v dokumentaci, integrace ji má kompletní.
+- `porucha` – stav je kód (`OK`, `A01`, `W07`, …), atributy `code`, `description` (kompletní tabulka).
+- `stav_cerpadla_30007` – surová hodnota slova, v atributech všechny bity (`hp_on`, `defrosting`, …, `bits`).
+- `rezim_cerpadla` – Automatika / Jen čerpadlo / Jen záložní topení / Vypnuto / Ruční režim / Chlazení.
+- `typ_regulace` – AcondTherm / Equiterm / Ručně.
+- `tichy_rezim_od` / `_do` – minuty od půlnoci, atribut `time` ve tvaru `06:30`.
 
-**Binární sensory** – všech 16 bitů stavového slova 30007
+**Binární sensory** – všech 16 bitů stavového slova 30007 (stejné bity jako atributy `stav_cerpadla_30007`)
 
 `hp_on`, `hp_operation`, `hp_failure`, `dhw_heating`, `circulation_1`, `circulation_2`,
 `solar_circulation`, `pool_circulation`, `defrosting`, `electric_heater`, `summer_mode`,
@@ -51,7 +59,7 @@ takže je lze přidat do **Nastavení → Dashboardy → Energie** (vytápění 
 
 ## Jak se čte
 
-Čte se **9 malých bloků**, každý zvlášť – jednotka, která neumí dlouhý blok nebo nemá
+Čte se **11 malých bloků**, každý zvlášť – jednotka, která neumí dlouhý blok nebo nemá
 implementované některé adresy, tak nezablokuje celou integraci:
 
 | Blok | Registry | Co v něm je |
@@ -65,6 +73,8 @@ implementované některé adresy, tak nezablokuje celou integraci:
 | 7 | 30035–30038 | energie vytápění (2× DINT) |
 | 8 | 30041 | SCOP |
 | 9 | 30069–30072 | energie chlazení (2× DINT) |
+| 10 | 30014–30015 | režim čerpadla, typ regulace |
+| 11 | 30033–30034 | tichý režim od/do |
 
 - 32bitové hodnoty (`DINT`, energie) se čtou jako dvě registry, **high word první** (Big Endian).
 - Teploty a COP jsou `INT ×10` → 228 = 22,8 °C, 45 = 4,5.

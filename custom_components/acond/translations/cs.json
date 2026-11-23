@@ -72,10 +72,10 @@
         "name": "Aktuální teplota okruh 2"
       },
       "setpoint_dhw": {
-        "name": "Žádaná teplota TUV"
+        "name": "Žádaná teplota TV"
       },
       "temperature_dhw": {
-        "name": "Teplota TUV"
+        "name": "Teplota TV"
       },
       "temperature_return": {
         "name": "Vratná voda"
@@ -106,6 +106,21 @@
       },
       "fault_code": {
         "name": "Porucha"
+      },
+      "status_word": {
+        "name": "Stav čerpadla (30007)"
+      },
+      "hp_mode": {
+        "name": "Režim čerpadla"
+      },
+      "regulation_type": {
+        "name": "Typ regulace"
+      },
+      "silent_start": {
+        "name": "Tichý režim – od"
+      },
+      "silent_stop": {
+        "name": "Tichý režim – do"
       }
     },
     "binary_sensor": {
@@ -119,7 +134,7 @@
         "name": "Porucha čerpadla"
       },
       "dhw_heating": {
-        "name": "Ohřev TUV"
+        "name": "Ohřev TV"
       },
       "circulation_1": {
         "name": "Cirkulace okruh 1"

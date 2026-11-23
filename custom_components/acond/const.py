@@ -41,6 +41,8 @@ BLOCKS: tuple[tuple[int, int], ...] = (
     (34, 4),  # 30035-30038 energy heating (2 x DINT)
     (40, 1),  # 30041 SCOP
     (68, 4),  # 30069-30072 energy cooling (2 x DINT)
+    (13, 2),  # 30014-30015 HP mode, type of regulation
+    (32, 2),  # 30033-30034 silent mode start/stop
 )
 
 
@@ -58,7 +60,25 @@ class ValueSpec:
     precision: int | None = None
     state_class: str | None = None
     icon: str | None = None
+    state_map: dict[int, str] | None = None
 
+
+#: 30014 - HP mode.
+HP_MODES: dict[int, str] = {
+    0: "Automatika",
+    1: "Jen čerpadlo",
+    3: "Jen záložní topení",
+    4: "Vypnuto",
+    5: "Ruční režim",
+    6: "Chlazení",
+}
+
+#: 30015 - type of regulation.
+REGULATION_TYPES: dict[int, str] = {
+    0: "AcondTherm",
+    1: "Equiterm",
+    2: "Ručně",
+}
 
 _TEMP = {
     "device_class": "temperature",
@@ -76,7 +96,9 @@ VALUES: tuple[ValueSpec, ...] = (
     # --- domestic hot water + status ------------------------------------
     ValueSpec("setpoint_dhw", 1, 0, "i16", 10, **_TEMP),
     ValueSpec("temperature_dhw", 1, 1, "i16", 10, **_TEMP),
-    ValueSpec("status_word", 1, 2, "u16"),
+    ValueSpec(
+        "status_word", 1, 2, "u16", precision=0, icon="mdi:information-outline"
+    ),
     # --- water / outdoor -----------------------------------------------
     ValueSpec("temperature_return", 2, 0, "i16", 10, **_TEMP),
     ValueSpec("temperature_outdoor", 2, 1, "i16", 10, **_TEMP),
@@ -103,10 +125,33 @@ VALUES: tuple[ValueSpec, ...] = (
         "energy_cooling_electric_total", 8, 2, "i32", 10,
         device_class="energy", unit="kWh", precision=1, state_class="total_increasing",
     ),
+    # --- HP mode and type of regulation ---------------------------------
+    ValueSpec("hp_mode", 9, 0, "i16", icon="mdi:heat-pump", state_map=HP_MODES),
+    ValueSpec(
+        "regulation_type", 9, 1, "i16", icon="mdi:tune", state_map=REGULATION_TYPES
+    ),
+    # --- silent mode (minutes from midnight) ----------------------------
+    ValueSpec(
+        "silent_start", 10, 0, "u16",
+        device_class="duration", unit="min", icon="mdi:weather-night",
+    ),
+    ValueSpec(
+        "silent_stop", 10, 1, "u16",
+        device_class="duration", unit="min", icon="mdi:weather-night",
+    ),
 )
 
-#: Keys that are used by other platforms instead of plain sensors.
-NON_SENSOR_KEYS = frozenset({"status_word", "fault_code"})
+#: Keys that get their own sensor class instead of the generic one.
+CUSTOM_SENSOR_KEYS = frozenset(
+    {
+        "fault_code",
+        "status_word",
+        "hp_mode",
+        "regulation_type",
+        "silent_start",
+        "silent_stop",
+    }
+)
 
 #: Indexes in BLOCKS that carry the optional "energy" values (COP, SCOP, kWh).
 ENERGY_BLOCKS = frozenset({5, 6, 7, 8})
